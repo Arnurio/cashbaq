@@ -1,0 +1,29 @@
+-- ============================================
+-- Cashbaq: RLS policies for admin (anon/publishable key)
+-- Adds INSERT, UPDATE, DELETE for all tables EXCEPT user_cards
+-- ============================================
+
+-- Banks
+CREATE POLICY "banks_insert" ON banks FOR INSERT WITH CHECK (true);
+CREATE POLICY "banks_update" ON banks FOR UPDATE USING (true);
+CREATE POLICY "banks_delete" ON banks FOR DELETE USING (true);
+
+-- Bank rates
+CREATE POLICY "bank_rates_insert" ON bank_rates FOR INSERT WITH CHECK (true);
+CREATE POLICY "bank_rates_update" ON bank_rates FOR UPDATE USING (true);
+CREATE POLICY "bank_rates_delete" ON bank_rates FOR DELETE USING (true);
+
+-- Promos
+CREATE POLICY "promos_insert" ON promos FOR INSERT WITH CHECK (true);
+CREATE POLICY "promos_update" ON promos FOR UPDATE USING (true);
+CREATE POLICY "promos_delete" ON promos FOR DELETE USING (true);
+
+-- Tips
+CREATE POLICY "tips_insert" ON tips FOR INSERT WITH CHECK (true);
+CREATE POLICY "tips_update" ON tips FOR UPDATE USING (true);
+CREATE POLICY "tips_delete" ON tips FOR DELETE USING (true);
+
+-- Tip items
+CREATE POLICY "tip_items_insert" ON tip_items FOR INSERT WITH CHECK (true);
+CREATE POLICY "tip_items_update" ON tip_items FOR UPDATE USING (true);
+CREATE POLICY "tip_items_delete" ON tip_items FOR DELETE USING (true);

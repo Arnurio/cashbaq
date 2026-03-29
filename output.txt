@@ -1,0 +1,102 @@
+-- ============================================
+-- Cashbaq: initial schema
+-- ============================================
+
+-- 1. Banks
+CREATE TABLE banks (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  card_name TEXT NOT NULL,
+  color TEXT NOT NULL,
+  gradient_start TEXT NOT NULL,
+  gradient_end TEXT NOT NULL,
+  bg_color TEXT NOT NULL,
+  type TEXT NOT NULL CHECK (type IN ('fixed', 'selectable', 'leveled', 'subscription')),
+  description TEXT,
+  note TEXT,
+  url TEXT,
+  has_lounge BOOLEAN NOT NULL DEFAULT false,
+  has_insurance BOOLEAN NOT NULL DEFAULT false,
+  monthly_limit INTEGER,
+  daily_limit INTEGER,
+  config JSONB NOT NULL DEFAULT '{}'
+);
+
+-- 2. Bank rates (cashback per category)
+CREATE TABLE bank_rates (
+  bank_id TEXT NOT NULL REFERENCES banks(id) ON DELETE CASCADE,
+  category_id TEXT NOT NULL,
+  rate NUMERIC(5,2) NOT NULL,
+  PRIMARY KEY (bank_id, category_id)
+);
+
+-- 3. Promos
+CREATE TABLE promos (
+  id SERIAL PRIMARY KEY,
+  bank_id TEXT NOT NULL REFERENCES banks(id) ON DELETE CASCADE,
+  title TEXT NOT NULL,
+  description TEXT,
+  category_id TEXT,
+  rate NUMERIC(5,2),
+  emoji TEXT,
+  end_date DATE,
+  is_new BOOLEAN NOT NULL DEFAULT false,
+  is_active BOOLEAN NOT NULL DEFAULT true
+);
+
+-- 4. Tips
+CREATE TABLE tips (
+  id TEXT PRIMARY KEY,
+  icon TEXT,
+  color TEXT,
+  title TEXT NOT NULL,
+  subtitle TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+
+-- 5. Tip items
+CREATE TABLE tip_items (
+  id SERIAL PRIMARY KEY,
+  tip_id TEXT NOT NULL REFERENCES tips(id) ON DELETE CASCADE,
+  bank_id TEXT REFERENCES banks(id) ON DELETE SET NULL,
+  card_name TEXT,
+  description TEXT NOT NULL,
+  how_to TEXT,
+  sort_order INTEGER NOT NULL DEFAULT 0
+);
+
+-- 6. User cards
+CREATE TABLE user_cards (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  user_id UUID NOT NULL,
+  bank_id TEXT NOT NULL REFERENCES banks(id) ON DELETE CASCADE,
+  name TEXT,
+  level TEXT CHECK (level IN ('standard', 'silver', 'gold', 'platinum')),
+  use_nfc BOOLEAN NOT NULL DEFAULT false,
+  tier TEXT CHECK (tier IN ('zero', 'basic', 'medium', 'high', 'max')),
+  selected_categories TEXT[] DEFAULT '{}'
+);
+
+-- ============================================
+-- RLS policies
+-- ============================================
+
+ALTER TABLE banks ENABLE ROW LEVEL SECURITY;
+ALTER TABLE bank_rates ENABLE ROW LEVEL SECURITY;
+ALTER TABLE promos ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tips ENABLE ROW LEVEL SECURITY;
+ALTER TABLE tip_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE user_cards ENABLE ROW LEVEL SECURITY;
+
+-- Read-only for everyone (public tables)
+CREATE POLICY "banks_read" ON banks FOR SELECT USING (true);
+CREATE POLICY "bank_rates_read" ON bank_rates FOR SELECT USING (true);
+CREATE POLICY "promos_read" ON promos FOR SELECT USING (true);
+CREATE POLICY "tips_read" ON tips FOR SELECT USING (true);
+CREATE POLICY "tip_items_read" ON tip_items FOR SELECT USING (true);
+
+-- user_cards: only owner can CRUD
+CREATE POLICY "user_cards_select" ON user_cards FOR SELECT USING (auth.uid() = user_id);
+CREATE POLICY "user_cards_insert" ON user_cards FOR INSERT WITH CHECK (auth.uid() = user_id);
+CREATE POLICY "user_cards_update" ON user_cards FOR UPDATE USING (auth.uid() = user_id);
+CREATE POLICY "user_cards_delete" ON user_cards FOR DELETE USING (auth.uid() = user_id);
