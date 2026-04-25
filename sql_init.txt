@@ -27,8 +27,24 @@ CREATE TABLE bank_rates (
   bank_id TEXT NOT NULL REFERENCES banks(id) ON DELETE CASCADE,
   category_id TEXT NOT NULL,
   rate NUMERIC(5,2) NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  source_url TEXT,
   PRIMARY KEY (bank_id, category_id)
 );
+
+-- Auto-touch updated_at on UPDATE
+CREATE OR REPLACE FUNCTION bank_rates_touch_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER bank_rates_updated_at_trigger
+  BEFORE UPDATE ON bank_rates
+  FOR EACH ROW
+  EXECUTE FUNCTION bank_rates_touch_updated_at();
 
 -- 3. Promos
 CREATE TABLE promos (

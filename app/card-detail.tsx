@@ -6,14 +6,25 @@ import {
   ScrollView,
   TouchableOpacity,
   Alert,
+  Linking,
 } from 'react-native';
 import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
-import { ArrowUp, Trash2, Settings } from 'lucide-react-native';
+import { ArrowUp, Trash2, Settings, ExternalLink, Clock } from 'lucide-react-native';
 import { getCards, saveCards } from '../lib/storage';
 import { useData } from '../lib/useData';
 import { CATEGORIES, BRAND_COLOR, BG_COLOR, MARKET_COLOR } from '../lib/constants';
 import { getCardRate, getMarketBestRate } from '../lib/cashback';
 import { UserCard, Bank } from '../lib/types';
+
+function formatRelative(iso: string): string {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24));
+  if (days < 1) return 'сегодня';
+  if (days === 1) return 'вчера';
+  if (days < 7) return `${days} дн. назад`;
+  if (days < 30) return `${Math.floor(days / 7)} нед. назад`;
+  if (days < 365) return `${Math.floor(days / 30)} мес. назад`;
+  return `${Math.floor(days / 365)} г. назад`;
+}
 
 export default function CardDetailScreen() {
   const { cardId } = useLocalSearchParams<{ cardId: string }>();
@@ -48,6 +59,7 @@ export default function CardDetailScreen() {
       if (!otherBank) return true;
       return getCardRate(otherCard, otherBank, cat.id) <= rate;
     });
+    const meta = bank.rateMeta?.[cat.id];
 
     return {
       category: cat,
@@ -56,8 +68,19 @@ export default function CardDetailScreen() {
       marketBank: market?.bank.card ?? '',
       isBest: isBestInCategory && rate > 0,
       canImprove: market ? market.rate > rate : false,
+      sourceUrl: meta?.sourceUrl,
+      updatedAt: meta?.updatedAt,
     };
   }).sort((a, b) => b.rate - a.rate);
+
+  // Самая свежая дата обновления среди всех ставок этого банка
+  const freshestUpdate = bank.rateMeta
+    ? Object.values(bank.rateMeta)
+        .map((m) => m.updatedAt)
+        .filter(Boolean)
+        .sort()
+        .reverse()[0]
+    : undefined;
 
   const handleDelete = () => {
     Alert.alert(
@@ -116,9 +139,19 @@ export default function CardDetailScreen() {
       )}
 
       {/* Cashback Table */}
-      <Text style={styles.tableTitle}>Кэшбэк по категориям</Text>
+      <View style={styles.tableHeader}>
+        <Text style={styles.tableTitle}>Кэшбэк по категориям</Text>
+        {freshestUpdate && (
+          <View style={styles.freshness}>
+            <Clock size={11} color="#9CA3AF" />
+            <Text style={styles.freshnessText}>
+              Обновлено: {formatRelative(freshestUpdate)}
+            </Text>
+          </View>
+        )}
+      </View>
 
-      {rates.map(({ category, rate, marketRate, marketBank, isBest, canImprove }) => (
+      {rates.map(({ category, rate, marketRate, marketBank, isBest, canImprove, sourceUrl }) => (
         <View key={category.id} style={styles.tableRow}>
           <Text style={styles.rowEmoji}>{category.emoji}</Text>
           <View style={styles.rowInfo}>
@@ -128,6 +161,14 @@ export default function CardDetailScreen() {
                 <View style={styles.bestBadge}>
                   <Text style={styles.bestBadgeText}>ЛУЧШАЯ</Text>
                 </View>
+              )}
+              {sourceUrl && (
+                <TouchableOpacity
+                  onPress={() => Linking.openURL(sourceUrl).catch(() => {})}
+                  hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                >
+                  <ExternalLink size={12} color="#9CA3AF" />
+                </TouchableOpacity>
               )}
             </View>
             {canImprove && (
@@ -241,11 +282,26 @@ const styles = StyleSheet.create({
     fontSize: 15,
     color: BRAND_COLOR,
   },
+  tableHeader: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    justifyContent: 'space-between',
+    marginBottom: 12,
+  },
   tableTitle: {
     fontFamily: 'Manrope_700Bold',
     fontSize: 18,
     color: '#111827',
-    marginBottom: 12,
+  },
+  freshness: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 4,
+  },
+  freshnessText: {
+    fontFamily: 'Manrope_500Medium',
+    fontSize: 11,
+    color: '#9CA3AF',
   },
   tableRow: {
     flexDirection: 'row',
