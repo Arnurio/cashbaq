@@ -1,8 +1,8 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { createClient } from '@supabase/supabase-js';
 
-const supabaseUrl = 'https://xurjanbmrnvtqyxbkbms.supabase.co';
-const supabaseAnonKey = 'sb_publishable_pIPtW5Df0zaUSnwMpPexsA_ozmjvhrb';
+const supabaseUrl = 'https://cdtnvqlxsbwcdiapbdkh.supabase.co';
+const supabaseAnonKey = 'sb_publishable_t_ZX1tPKl9q93fdiVU-LeA_rrnK4Sv5';
 
 // Wrap AsyncStorage to prevent unhandled native errors
 const SafeStorage = {

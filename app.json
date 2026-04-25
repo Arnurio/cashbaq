@@ -37,8 +37,10 @@
     ],
     "extra": {
       "eas": {
-        "projectId": "YOUR_EAS_PROJECT_ID"
-      }
-    }
+        "projectId": "32cc8607-6968-472c-a1b0-208c0276db2e"
+      },
+      "router": {}
+    },
+    "owner": "arnurio"
   }
 }
