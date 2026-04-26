@@ -6,6 +6,7 @@ import Rates from './pages/Rates';
 import Promos from './pages/Promos';
 import Tips from './pages/Tips';
 import Reports from './pages/Reports';
+import Analytics from './pages/Analytics';
 
 export default function App() {
   return (
@@ -20,6 +21,7 @@ export default function App() {
             <Route path="/promos" element={<Promos />} />
             <Route path="/tips" element={<Tips />} />
             <Route path="/reports" element={<Reports />} />
+            <Route path="/analytics" element={<Analytics />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>
