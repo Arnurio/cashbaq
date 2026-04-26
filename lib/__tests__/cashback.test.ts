@@ -28,9 +28,9 @@ describe('getCardRate', () => {
       expect(getCardRate(card, bank('kaspi'), 'travel')).toBe(0);
     });
 
-    it('Halyk travel = 7%', () => {
+    it('Halyk travel = 5% (Halyk Travel app)', () => {
       const card = makeCard({ bankId: 'halyk' });
-      expect(getCardRate(card, bank('halyk'), 'travel')).toBe(7);
+      expect(getCardRate(card, bank('halyk'), 'travel')).toBe(5);
     });
 
     it('Halyk grocery = 1%', () => {
@@ -252,7 +252,7 @@ describe('getMarketBestRate', () => {
     expect(result!.rate).toBe(15);
   });
 
-  it('travel: Halyk 7% > Freedom 6%', () => {
+  it('travel: Forte 15% selectable > Halyk 5%', () => {
     const result = getMarketBestRate(BANKS, 'travel');
     expect(result).not.toBeNull();
     // Forte selectable 15% > Halyk 7%

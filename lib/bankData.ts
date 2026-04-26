@@ -40,7 +40,7 @@ export const BANKS: Bank[] = [
       clothing: 1,
       entertainment: 1,
       fuel: 1,
-      travel: 7,
+      travel: 5,
       pharmacy: 1,
       online: 1,
       telecom: 1,
