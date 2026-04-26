@@ -18,9 +18,9 @@ const makeCard = (overrides: Partial<UserCard> & { bankId: string }): UserCard =
 describe('getCardRate', () => {
   // ── Fixed banks ──────────────────────────────────────────
   describe('fixed type', () => {
-    it('Kaspi grocery = 1%', () => {
+    it('Kaspi grocery = 0% (promo-only, нет фикс. ставок)', () => {
       const card = makeCard({ bankId: 'kaspi' });
-      expect(getCardRate(card, bank('kaspi'), 'grocery')).toBe(1);
+      expect(getCardRate(card, bank('kaspi'), 'grocery')).toBe(0);
     });
 
     it('Kaspi travel = 0% (нет такой категории)', () => {
@@ -211,14 +211,12 @@ describe('getBestCard', () => {
 
   it('при одинаковых ставках возвращает первую', () => {
     const cards: UserCard[] = [
-      makeCard({ bankId: 'kaspi', id: 'c1' }), // 1% grocery
-      makeCard({ bankId: 'halyk', id: 'c2' }), // 1% grocery
+      makeCard({ bankId: 'halyk', id: 'c1' }), // 1% grocery
+      makeCard({ bankId: 'jusan', id: 'c2' }), // 3% grocery — jusan wins
     ];
     const result = getBestCard(cards, BANKS, 'grocery');
     expect(result).not.toBeNull();
-    // Обе по 1%, но первая добавлена раньше — должна вернуть kaspi
-    // По коду: `rate > best.rate` — строгое сравнение, первый остаётся
-    expect(result!.card.id).toBe('c1');
+    expect(result!.card.id).toBe('c2'); // jusan 3% > halyk 1%
   });
 
   it('пустой массив карт = null', () => {
@@ -236,7 +234,7 @@ describe('getBestCard', () => {
 
   it('одна карта = она и лучшая', () => {
     const cards: UserCard[] = [
-      makeCard({ bankId: 'kaspi', id: 'c1' }),
+      makeCard({ bankId: 'halyk', id: 'c1' }),
     ];
     const result = getBestCard(cards, BANKS, 'grocery');
     expect(result!.card.id).toBe('c1');

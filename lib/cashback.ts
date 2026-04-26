@@ -30,6 +30,10 @@ export function getCardRate(card: UserCard, bank: Bank, categoryId: string): num
       return bank.config.tiers?.[tier] ?? 0;
     }
 
+    case 'promo':
+      // Нет фиксированных ставок — только промо-акции
+      return 0;
+
     default:
       return 0;
   }
