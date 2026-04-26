@@ -1,3 +1,6 @@
+# Claude Code local config (per-machine, do not commit)
+.claude/
+
 node_modules/
 .expo/
 dist/
