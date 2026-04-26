@@ -9,20 +9,28 @@ const BANKS = [
   { id: 'bcc',     name: 'BCC Card',           url: 'https://bcc.kz/cards' },
   { id: 'freedom', name: 'Freedom Card',       url: 'https://bank.freedom.kz/cards' },
   { id: 'bereke',  name: 'Bereke Card',        url: 'https://berebank.kz/cards' },
-  { id: 'jusan',   name: 'Alatau City Card',   url: 'https://jusan.kz/cards' },
+  { id: 'jusan',   name: 'Alatau City Card',   url: 'https://alatau.kz/cards' },
 ];
-
-const STORAGE_KEY = 'cashbaq_audit_checklist';
 
 interface CheckState {
   [bankId: string]: { checked: boolean; checkedAt: string | null };
 }
 
-function getWeekLabel(): string {
+function getWeekStart(): Date {
   const now = new Date();
   const start = new Date(now);
-  start.setDate(now.getDate() - now.getDay() + 1); // Monday
-  return start.toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+  // Monday = 1, Sunday = 0; offset back to Monday
+  start.setDate(now.getDate() - ((now.getDay() + 6) % 7));
+  start.setHours(0, 0, 0, 0);
+  return start;
+}
+
+function getWeekLabel(): string {
+  return getWeekStart().toLocaleDateString('ru-RU', { day: 'numeric', month: 'long' });
+}
+
+function getStorageKey(): string {
+  return `cashbaq_audit_checklist_${getWeekStart().toISOString().slice(0, 10)}`;
 }
 
 function daysSince(iso: string | null): number | null {
@@ -34,15 +42,21 @@ export default function Checklist() {
   const [checks, setChecks] = useState<CheckState>({});
   const [staleCount, setStaleCount] = useState(0);
 
+  const [error, setError] = useState<string | null>(null);
+
   useEffect(() => {
-    const saved = localStorage.getItem(STORAGE_KEY);
+    const saved = localStorage.getItem(getStorageKey());
     if (saved) setChecks(JSON.parse(saved));
 
     // Count rates not updated in 30+ days
     supabase
       .from('bank_rates')
       .select('updated_at')
-      .then(({ data }) => {
+      .then(({ data, error: err }) => {
+        if (err) {
+          setError('Не удалось загрузить ставки');
+          return;
+        }
         const stale = (data ?? []).filter((r: { updated_at: string | null }) => {
           if (!r.updated_at) return true;
           return daysSince(r.updated_at)! >= 30;
@@ -61,14 +75,14 @@ export default function Checklist() {
           checkedAt: !current?.checked ? new Date().toISOString() : null,
         },
       };
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(next));
+      localStorage.setItem(getStorageKey(), JSON.stringify(next));
       return next;
     });
   };
 
   const reset = () => {
     const cleared: CheckState = {};
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(cleared));
+    localStorage.setItem(getStorageKey(), JSON.stringify(cleared));
     setChecks(cleared);
   };
 
@@ -89,6 +103,12 @@ export default function Checklist() {
           Сбросить
         </button>
       </div>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       {staleCount > 0 && (
         <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-sm text-amber-800">

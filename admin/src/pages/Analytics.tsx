@@ -80,15 +80,19 @@ function BarList({ title, data }: { title: string; data: CountEntry[] }) {
 export default function Analytics() {
   const [events, setEvents] = useState<EventRow[]>([]);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
     supabase
       .from('analytics_events')
       .select('event, properties, created_at')
+      .gte('created_at', thirtyDaysAgo)
       .order('created_at', { ascending: false })
       .limit(5000)
-      .then(({ data }) => {
-        setEvents((data as EventRow[]) ?? []);
+      .then(({ data, error: err }) => {
+        if (err) setError('Не удалось загрузить события');
+        else setEvents((data as EventRow[]) ?? []);
         setLoading(false);
       });
   }, []);
@@ -107,7 +111,14 @@ export default function Analytics() {
 
   return (
     <div>
-      <h2 className="text-2xl font-bold text-gray-900 mb-6">Аналитика</h2>
+      <h2 className="text-2xl font-bold text-gray-900 mb-1">Аналитика</h2>
+      <p className="text-sm text-gray-500 mb-6">За последние 30 дней</p>
+
+      {error && (
+        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-sm text-red-700">
+          {error}
+        </div>
+      )}
 
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
         <StatCard title="Всего событий" value={totalEvents} icon={BarChart2} />

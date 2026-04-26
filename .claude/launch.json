@@ -2,6 +2,12 @@
   "version": "0.0.1",
   "configurations": [
     {
+      "name": "admin",
+      "runtimeExecutable": "node",
+      "runtimeArgs": ["admin/node_modules/vite/bin/vite.js", "admin", "--port", "5173"],
+      "port": 5173
+    },
+    {
       "name": "landing",
       "runtimeExecutable": "npx",
       "runtimeArgs": ["serve", "landing", "-l", "4000"],
