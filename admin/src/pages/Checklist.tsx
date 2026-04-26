@@ -3,13 +3,13 @@ import { supabase } from '../lib/supabase';
 import { CheckCircle2, Circle, RefreshCw, ExternalLink } from 'lucide-react';
 
 const BANKS = [
-  { id: 'kaspi',   name: 'Kaspi Gold',        url: 'https://kaspi.kz/cardstore/card/gold' },
-  { id: 'halyk',   name: 'Halyk Bonus',        url: 'https://halykbank.kz/cards/debit' },
-  { id: 'forte',   name: 'Forte Card',         url: 'https://forte.kz/cards' },
+  { id: 'kaspi',   name: 'Kaspi Gold',        url: 'https://guide.kaspi.kz/client/ru/gold' },
+  { id: 'halyk',   name: 'Halyk Bonus',        url: 'https://halykbank.kz/ru/card/halyk-bonus-card' },
+  { id: 'forte',   name: 'Forte Card',         url: 'https://forte.kz/cashback' },
   { id: 'bcc',     name: 'BCC Card',           url: 'https://bcc.kz/cards' },
-  { id: 'freedom', name: 'Freedom Card',       url: 'https://bank.freedom.kz/cards' },
-  { id: 'bereke',  name: 'Bereke Card',        url: 'https://berebank.kz/cards' },
-  { id: 'jusan',   name: 'Alatau City Card',   url: 'https://alatau.kz/cards' },
+  { id: 'freedom', name: 'Freedom Card',       url: 'https://bankffin.kz/ru/cards' },
+  { id: 'bereke',  name: 'Bereke Card',        url: 'https://berekebank.kz/ru/visa-allin' },
+  { id: 'jusan',   name: 'Alatau City Card',   url: 'https://alataucitybank.kz/ru/cards' },
 ];
 
 interface CheckState {
