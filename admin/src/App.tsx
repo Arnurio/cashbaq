@@ -7,6 +7,7 @@ import Promos from './pages/Promos';
 import Tips from './pages/Tips';
 import Reports from './pages/Reports';
 import Analytics from './pages/Analytics';
+import Checklist from './pages/Checklist';
 
 export default function App() {
   return (
@@ -22,6 +23,7 @@ export default function App() {
             <Route path="/tips" element={<Tips />} />
             <Route path="/reports" element={<Reports />} />
             <Route path="/analytics" element={<Analytics />} />
+            <Route path="/checklist" element={<Checklist />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>

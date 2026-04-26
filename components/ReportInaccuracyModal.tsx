@@ -13,6 +13,7 @@ import {
 import { X } from 'lucide-react-native';
 import { supabase } from '../lib/supabase';
 import { BRAND_COLOR } from '../lib/constants';
+import { trackEvent } from '../lib/analytics';
 
 interface ReportInaccuracyModalProps {
   visible: boolean;
@@ -81,6 +82,7 @@ export default function ReportInaccuracyModal({
       return;
     }
 
+    trackEvent('inaccuracy_reported', { bank_id: bankId, category_id: categoryId });
     handleClose(true);
   };
 
