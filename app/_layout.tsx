@@ -13,6 +13,7 @@ import {
 import { ToastProvider } from '../lib/Toast';
 import { getOnboarded } from '../lib/storage';
 import { onAuthStateChange } from '../lib/auth';
+import { registerForPushNotifications } from '../lib/notifications';
 import type { Session } from '@supabase/supabase-js';
 
 // Suppress known native-module warnings in production
@@ -79,6 +80,11 @@ export default function RootLayout() {
   useEffect(() => {
     const sub = onAuthStateChange((s) => setSession(s));
     return () => sub.unsubscribe();
+  }, []);
+
+  // Register push notifications (silent — no crash if denied)
+  useEffect(() => {
+    registerForPushNotifications().catch(() => {});
   }, []);
 
   useEffect(() => {
