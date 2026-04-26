@@ -111,3 +111,49 @@ npx expo start --web
 ```
 
 Это сэкономит токены — агент войдёт в контекст за 1 чтение вместо длинной переписки.
+
+---
+
+## 💰 Привычки экономии токенов
+
+### 1. Не вставляй файлы в чат целиком
+❌ «Вот мой код, посмотри [paste 500 строк]»
+✅ «Посмотри `lib/api.ts:30-60`» — агент сам прочитает только нужные строки.
+
+### 2. Конкретика вместо «исследуй»
+❌ «Проверь весь проект на баги»
+✅ «Проверь `app/card-detail.tsx` на потенциальные null-ошибки»
+
+### 3. Используй `/compact` когда контекст разрос
+Команда `/compact` сжимает историю чата, оставляя ключевые факты. Делает один раз стоит ~5k токенов, экономит десятки тысяч.
+
+### 4. Делегируй ресёрч субагентам
+Большие задачи поиска делегируй командой:
+```
+Используй subagent Explore чтобы найти ...
+Используй subagent general-purpose чтобы исследовать ...
+```
+Результат субагента приходит сжатым — главный контекст не засоряется.
+
+### 5. Один файл за раз при больших правках
+Параллельные правки в нескольких файлах требуют чтения всех — много токенов.
+Лучше: один файл → коммит → следующий.
+
+### 6. Закрывай задачу одним PR
+Не оставляй полу-сделанные ветки — каждая ветка требует загрузки контекста при возвращении.
+
+### 7. Settings allowlist (уже настроено в `.claude/settings.json`)
+Безопасные команды (git, jest, tsc, gh) теперь не спрашивают подтверждения → меньше токенов на permission-prompts.
+
+---
+
+## 🔗 Полезные ресурсы Anthropic (open source)
+
+| Репозиторий | Зачем |
+|-------------|-------|
+| [anthropics/claude-code](https://github.com/anthropics/claude-code) | Главный репо. Issues, examples settings.json, hooks, slash-commands |
+| [anthropics/anthropic-cookbook](https://github.com/anthropics/anthropic-cookbook) | Паттерны промптов и API tool use |
+| [anthropics/courses](https://github.com/anthropics/courses) | Бесплатные курсы по Claude и prompt engineering |
+| [anthropics/claude-code-action](https://github.com/anthropics/claude-code-action) | GitHub Action для автоматизации Claude Code в CI |
+| [anthropics/claude-cookbooks](https://github.com/anthropics/claude-cookbooks) | Гайды по построению агентов |
+| [docs.anthropic.com/claude-code](https://docs.anthropic.com/en/docs/claude-code/overview) | Официальная документация (slash commands, MCP, hooks) |

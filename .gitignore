@@ -1,5 +1,9 @@
-# Claude Code local config (per-machine, do not commit)
-.claude/
+# Claude Code: per-user files (settings.local.json содержит личные разрешения).
+# Общие настройки команды — .claude/settings.json — ДОЛЖНЫ коммититься.
+.claude/settings.local.json
+.claude/sessions/
+.claude/projects/
+.claude/worktrees/
 
 node_modules/
 .expo/
