@@ -4,8 +4,8 @@ import { CheckCircle2, Circle, RefreshCw, ExternalLink } from 'lucide-react';
 
 const BANKS = [
   { id: 'kaspi',   name: 'Kaspi Gold',        url: 'https://guide.kaspi.kz/client/ru/gold' },
-  { id: 'halyk',   name: 'Halyk Bonus',        url: 'https://halykbank.kz/ru/card/halyk-bonus-card' },
-  { id: 'forte',   name: 'Forte Card',         url: 'https://forte.kz/cashback' },
+  { id: 'halyk',   name: 'Halyk Bonus',        url: 'https://halykbank.kz/en/card/halyk-bonus-card' },
+  { id: 'forte',   name: 'Forte Card',         url: 'https://bank.forte.kz/ru/cards' },
   { id: 'bcc',     name: 'BCC Card',           url: 'https://bcc.kz/cards' },
   { id: 'freedom', name: 'Freedom Card',       url: 'https://bankffin.kz/ru/cards' },
   { id: 'bereke',  name: 'Bereke Card',        url: 'https://berekebank.kz/ru/visa-allin' },
