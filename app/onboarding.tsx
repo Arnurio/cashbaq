@@ -19,7 +19,7 @@ const SLIDES = [
   {
     emoji: '🏦',
     title: 'Все банки Казахстана',
-    desc: 'Kaspi, Halyk, Forte, BCC, Freedom, Bereke, Jusan — реальные условия кэшбэков',
+    desc: 'Kaspi, Halyk, Forte, BCC, Freedom, Bereke, Alatau City — реальные условия кэшбэков',
   },
   {
     emoji: '💰',

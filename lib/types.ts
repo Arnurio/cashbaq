@@ -1,4 +1,4 @@
-export type BankType = 'fixed' | 'selectable' | 'leveled' | 'subscription';
+export type BankType = 'fixed' | 'selectable' | 'leveled' | 'subscription' | 'promo';
 
 export type FreedomLevel = 'standard' | 'silver' | 'gold' | 'platinum';
 export type BerekeTier = 'zero' | 'basic' | 'medium' | 'high' | 'max';

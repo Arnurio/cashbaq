@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cashbaq — Лучший кэшбэк в Казахстане</title>
+  <meta name="description" content="Узнайте какой картой выгоднее платить в любой категории. Kaspi, Halyk, Forte, Freedom и другие банки Казахстана." />
+  <meta property="og:title" content="Cashbaq — Лучший кэшбэк в Казахстане" />
+  <meta property="og:description" content="Узнайте какой картой выгоднее платить в любой категории." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@400;600;700;800&display=swap" rel="stylesheet" />
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --brand: #0D7C5F;
+      --brand-light: #E6F7F1;
+      --bg: #F6F8FA;
+      --text: #111827;
+      --muted: #6B7280;
+    }
+
+    body {
+      font-family: 'Manrope', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    /* NAV */
+    nav {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 20px 40px;
+      background: #fff;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    .logo { font-size: 22px; font-weight: 800; color: var(--brand); }
+    .nav-links a {
+      margin-left: 24px;
+      color: var(--muted);
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+    }
+    .nav-links a:hover { color: var(--brand); }
+
+    /* HERO */
+    .hero {
+      text-align: center;
+      padding: 80px 24px 60px;
+      max-width: 680px;
+      margin: 0 auto;
+    }
+    .hero-badge {
+      display: inline-block;
+      background: var(--brand-light);
+      color: var(--brand);
+      font-size: 13px;
+      font-weight: 700;
+      padding: 6px 14px;
+      border-radius: 20px;
+      margin-bottom: 20px;
+    }
+    .hero h1 {
+      font-size: clamp(32px, 6vw, 52px);
+      font-weight: 800;
+      line-height: 1.15;
+      margin-bottom: 20px;
+    }
+    .hero h1 span { color: var(--brand); }
+    .hero p {
+      font-size: 18px;
+      color: var(--muted);
+      line-height: 1.6;
+      margin-bottom: 36px;
+    }
+    .cta-group { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .btn-primary {
+      background: var(--brand);
+      color: #fff;
+      padding: 14px 28px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: opacity .2s;
+    }
+    .btn-primary:hover { opacity: .88; }
+    .btn-secondary {
+      background: #fff;
+      color: var(--brand);
+      border: 2px solid var(--brand);
+      padding: 14px 28px;
+      border-radius: 14px;
+      font-size: 16px;
+      font-weight: 700;
+      text-decoration: none;
+      transition: background .2s;
+    }
+    .btn-secondary:hover { background: var(--brand-light); }
+
+    /* BANKS */
+    .banks {
+      display: flex;
+      justify-content: center;
+      gap: 12px;
+      flex-wrap: wrap;
+      padding: 0 24px 60px;
+    }
+    .bank-chip {
+      background: #fff;
+      border: 1px solid #E5E7EB;
+      border-radius: 12px;
+      padding: 10px 16px;
+      font-size: 14px;
+      font-weight: 600;
+      color: var(--text);
+      box-shadow: 0 1px 4px rgba(0,0,0,.06);
+    }
+
+    /* HOW IT WORKS */
+    .section { max-width: 900px; margin: 0 auto; padding: 60px 24px; }
+    .section-title {
+      font-size: 28px;
+      font-weight: 800;
+      text-align: center;
+      margin-bottom: 40px;
+    }
+    .steps {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 20px;
+    }
+    .step {
+      background: #fff;
+      border-radius: 16px;
+      padding: 24px;
+      box-shadow: 0 2px 8px rgba(0,0,0,.06);
+    }
+    .step-num {
+      width: 36px; height: 36px;
+      background: var(--brand);
+      color: #fff;
+      border-radius: 50%;
+      font-weight: 800;
+      font-size: 16px;
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 14px;
+    }
+    .step h3 { font-size: 16px; font-weight: 700; margin-bottom: 8px; }
+    .step p { font-size: 14px; color: var(--muted); line-height: 1.5; }
+
+    /* FEATURES */
+    .features {
+      background: #fff;
+      border-top: 1px solid #E5E7EB;
+      border-bottom: 1px solid #E5E7EB;
+    }
+    .features-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 20px;
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 60px 24px;
+    }
+    .feature { text-align: center; }
+    .feature-icon { font-size: 32px; margin-bottom: 12px; }
+    .feature h3 { font-size: 15px; font-weight: 700; margin-bottom: 6px; }
+    .feature p { font-size: 13px; color: var(--muted); }
+
+    /* DOWNLOAD */
+    .download {
+      text-align: center;
+      padding: 70px 24px;
+      max-width: 560px;
+      margin: 0 auto;
+    }
+    .download h2 { font-size: 28px; font-weight: 800; margin-bottom: 12px; }
+    .download p { color: var(--muted); margin-bottom: 28px; font-size: 16px; }
+    .store-badges { display: flex; gap: 12px; justify-content: center; flex-wrap: wrap; }
+    .store-badge {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #111827;
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: 12px;
+      text-decoration: none;
+      font-weight: 600;
+      font-size: 14px;
+      transition: opacity .2s;
+    }
+    .store-badge:hover { opacity: .85; }
+    .store-badge svg { width: 22px; height: 22px; fill: #fff; }
+
+    /* FOOTER */
+    footer {
+      text-align: center;
+      padding: 30px 24px;
+      color: var(--muted);
+      font-size: 13px;
+      border-top: 1px solid #E5E7EB;
+    }
+
+    @media (max-width: 600px) {
+      nav { padding: 16px 20px; }
+      .nav-links { display: none; }
+    }
+  </style>
+</head>
+<body>
+
+<nav>
+  <div class="logo">Cashbaq</div>
+  <div class="nav-links">
+    <a href="#how">Как работает</a>
+    <a href="#download">Скачать</a>
+  </div>
+</nav>
+
+<div class="hero">
+  <div class="hero-badge">🇰🇿 Для банков Казахстана</div>
+  <h1>Знайте, какой картой<br><span>выгоднее платить</span></h1>
+  <p>Добавьте свои карты — Cashbaq подскажет максимальный кэшбэк для каждой покупки. Продукты, рестораны, АЗС и 7 других категорий.</p>
+  <div class="cta-group">
+    <a href="#download" class="btn-primary">Скачать приложение</a>
+    <a href="#how" class="btn-secondary">Как это работает</a>
+  </div>
+</div>
+
+<div class="banks">
+  <div class="bank-chip">🔴 Kaspi</div>
+  <div class="bank-chip">🟢 Halyk</div>
+  <div class="bank-chip">⚫ Forte</div>
+  <div class="bank-chip">🔵 BCC</div>
+  <div class="bank-chip">🟠 Freedom</div>
+  <div class="bank-chip">🟣 Bereke</div>
+  <div class="bank-chip">🟡 Jusan</div>
+</div>
+
+<div id="how" class="section">
+  <div class="section-title">Как это работает</div>
+  <div class="steps">
+    <div class="step">
+      <div class="step-num">1</div>
+      <h3>Добавьте карты</h3>
+      <p>Укажите какие банковские карты у вас есть. Данные хранятся только на вашем телефоне.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">2</div>
+      <h3>Выберите категорию</h3>
+      <p>Продукты, рестораны, АЗС, аптеки, путешествия — 10 категорий покупок.</p>
+    </div>
+    <div class="step">
+      <div class="step-num">3</div>
+      <h3>Получите ответ</h3>
+      <p>Cashbaq мгновенно покажет какой картой платить выгоднее и сколько вы сэкономите.</p>
+    </div>
+  </div>
+</div>
+
+<div class="features">
+  <div class="features-grid">
+    <div class="feature">
+      <div class="feature-icon">⚡</div>
+      <h3>Мгновенно</h3>
+      <p>Ответ за секунду без регистрации</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🔒</div>
+      <h3>Приватно</h3>
+      <p>Данные карт хранятся только у вас</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🆓</div>
+      <h3>Бесплатно</h3>
+      <p>Навсегда. Без рекламы и подписок</p>
+    </div>
+    <div class="feature">
+      <div class="feature-icon">🏦</div>
+      <h3>7 банков</h3>
+      <p>Все крупные банки Казахстана</p>
+    </div>
+  </div>
+</div>
+
+<div id="download" class="download">
+  <h2>Скачайте Cashbaq</h2>
+  <p>Доступно на iOS и Android. Бесплатно.</p>
+  <div class="store-badges">
+    <a href="#" class="store-badge">
+      <svg viewBox="0 0 24 24"><path d="M18.71 19.5c-.83 1.24-1.71 2.45-3.05 2.47-1.34.03-1.77-.79-3.29-.79-1.53 0-2 .77-3.27.82-1.31.05-2.3-1.32-3.14-2.53C4.25 17 2.94 12.45 4.7 9.39c.87-1.52 2.43-2.48 4.12-2.51 1.28-.02 2.5.87 3.29.87.78 0 2.26-1.07 3.8-.91.65.03 2.47.26 3.64 1.98-.09.06-2.17 1.28-2.15 3.81.03 3.02 2.65 4.03 2.68 4.04-.03.07-.42 1.44-1.38 2.83M13 3.5c.73-.83 1.94-1.46 2.94-1.5.13 1.17-.34 2.35-1.04 3.19-.69.85-1.83 1.51-2.95 1.42-.15-1.15.41-2.35 1.05-3.11z"/></svg>
+      App Store
+    </a>
+    <a href="#" class="store-badge">
+      <svg viewBox="0 0 24 24"><path d="M3.18 23.76c.3.17.66.19.99.06l12.49-7.2-2.79-2.79-10.69 9.93zM.49 1.27C.18 1.6 0 2.1 0 2.74v18.52c0 .64.18 1.14.49 1.47l.08.07 10.38-10.38v-.24L.57 1.2l-.08.07zM20.49 10.29l-2.79-1.61-3.12 3.12 3.12 3.12 2.82-1.63c.8-.46.8-1.22-.03-1.99v-.01zm-17.31 13.47l12.49-7.21-2.79-2.79-9.7 9.93v.07z"/></svg>
+      Google Play
+    </a>
+  </div>
+</div>
+
+<footer>
+  © 2026 Cashbaq · Казахстан · Бесплатно и без рекламы
+</footer>
+
+</body>
+</html>

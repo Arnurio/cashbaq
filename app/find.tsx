@@ -49,6 +49,16 @@ export default function FindScreen() {
         .sort((a, b) => b.rate - a.rate)
     : [];
 
+  const promoCards = selectedCat
+    ? cards
+        .map((card) => {
+          const bank = bankMap.get(card.bankId);
+          if (!bank || bank.type !== 'promo') return null;
+          return { card, bank };
+        })
+        .filter((r): r is NonNullable<typeof r> => r !== null)
+    : [];
+
   if (loading && banks.length === 0) {
     return (
       <View style={styles.loadingWrap}>
@@ -154,6 +164,21 @@ export default function FindScreen() {
                   />
                   <Text style={styles.otherName}>{bank.card}</Text>
                   <Text style={styles.otherRate}>{rate}%</Text>
+                </View>
+              ))}
+            </View>
+          )}
+
+          {/* Promo-only Cards (e.g. Kaspi) */}
+          {promoCards.length > 0 && (
+            <View style={styles.otherSection}>
+              {promoCards.map(({ card, bank }) => (
+                <View key={card.id} style={[styles.otherRow, CARD_SHADOW]}>
+                  <View
+                    style={[styles.otherDot, { backgroundColor: bank.color }]}
+                  />
+                  <Text style={styles.otherName}>{bank.card}</Text>
+                  <Text style={styles.promoOnlyBadge}>Только акции</Text>
                 </View>
               ))}
             </View>
@@ -348,5 +373,15 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope_700Bold',
     fontSize: 16,
     color: '#374151',
+  },
+  promoOnlyBadge: {
+    fontFamily: 'Manrope_600SemiBold',
+    fontSize: 12,
+    color: '#E53935',
+    backgroundColor: '#FFEBEE',
+    paddingHorizontal: 8,
+    paddingVertical: 3,
+    borderRadius: 8,
+    overflow: 'hidden',
   },
 });
