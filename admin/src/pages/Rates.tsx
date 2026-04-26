@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
-import { Save } from 'lucide-react';
+import { Save, ExternalLink, Link2 } from 'lucide-react';
 
 const CATEGORIES = [
   { id: 'grocery', name: 'Продукты', emoji: '🛒' },
@@ -27,29 +27,66 @@ interface Rate {
   bank_id: string;
   category_id: string;
   rate: number;
+  updated_at?: string;
+  source_url?: string | null;
+}
+
+interface RateMeta {
+  updatedAt: string;
+  sourceUrl: string;
+}
+
+function formatRelative(iso: string): string {
+  const diffMs = Date.now() - new Date(iso).getTime();
+  const days = Math.floor(diffMs / (1000 * 60 * 60 * 24));
+  if (days < 1) return 'сегодня';
+  if (days === 1) return 'вчера';
+  if (days < 7) return `${days} дн. назад`;
+  if (days < 30) return `${Math.floor(days / 7)} нед. назад`;
+  if (days < 365) return `${Math.floor(days / 30)} мес. назад`;
+  return `${Math.floor(days / 365)} г. назад`;
+}
+
+function freshnessColor(iso: string): string {
+  const days = Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24));
+  if (days < 14) return 'text-green-600';
+  if (days < 60) return 'text-amber-600';
+  return 'text-red-600';
 }
 
 export default function Rates() {
   const [banks, setBanks] = useState<Bank[]>([]);
   const [rates, setRates] = useState<Map<string, number>>(new Map());
+  const [meta, setMeta] = useState<Map<string, RateMeta>>(new Map());
   const [dirty, setDirty] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
+  const [editingSource, setEditingSource] = useState<string | null>(null);
 
   useEffect(() => {
-    async function load() {
-      const [b, r] = await Promise.all([
-        supabase.from('banks').select('id, name, color').order('name'),
-        supabase.from('bank_rates').select('*'),
-      ]);
-      if (b.data) setBanks(b.data);
-      if (r.data) {
-        const map = new Map<string, number>();
-        (r.data as Rate[]).forEach((row) => map.set(`${row.bank_id}:${row.category_id}`, row.rate));
-        setRates(map);
-      }
-    }
     load();
   }, []);
+
+  async function load() {
+    const [b, r] = await Promise.all([
+      supabase.from('banks').select('id, name, color').order('name'),
+      supabase.from('bank_rates').select('*'),
+    ]);
+    if (b.data) setBanks(b.data);
+    if (r.data) {
+      const ratesMap = new Map<string, number>();
+      const metaMap = new Map<string, RateMeta>();
+      (r.data as Rate[]).forEach((row) => {
+        const key = `${row.bank_id}:${row.category_id}`;
+        ratesMap.set(key, row.rate);
+        metaMap.set(key, {
+          updatedAt: row.updated_at ?? new Date().toISOString(),
+          sourceUrl: row.source_url ?? '',
+        });
+      });
+      setRates(ratesMap);
+      setMeta(metaMap);
+    }
+  }
 
   function getKey(bankId: string, catId: string) {
     return `${bankId}:${catId}`;
@@ -67,16 +104,31 @@ export default function Rates() {
     setDirty(new Set(dirty).add(key));
   }
 
+  function updateSource(bankId: string, catId: string, url: string) {
+    const key = getKey(bankId, catId);
+    const newMeta = new Map(meta);
+    const cur = newMeta.get(key) ?? { updatedAt: new Date().toISOString(), sourceUrl: '' };
+    newMeta.set(key, { ...cur, sourceUrl: url });
+    setMeta(newMeta);
+    setDirty(new Set(dirty).add(key));
+  }
+
   async function saveAll() {
     setSaving(true);
-    const upserts: Rate[] = [];
+    const upserts: { bank_id: string; category_id: string; rate: number; source_url: string | null }[] = [];
     const deletes: { bank_id: string; category_id: string }[] = [];
 
     for (const key of dirty) {
       const [bank_id, category_id] = key.split(':');
       const rate = rates.get(key);
+      const m = meta.get(key);
       if (rate !== undefined && !isNaN(rate)) {
-        upserts.push({ bank_id, category_id, rate });
+        upserts.push({
+          bank_id,
+          category_id,
+          rate,
+          source_url: m?.sourceUrl?.trim() || null,
+        });
       } else {
         deletes.push({ bank_id, category_id });
       }
@@ -91,12 +143,22 @@ export default function Rates() {
 
     setDirty(new Set());
     setSaving(false);
+    setEditingSource(null);
+    await load();
   }
 
   return (
     <div>
       <div className="flex items-center justify-between mb-6">
-        <h1 className="text-2xl font-bold text-gray-900">Ставки кэшбэка</h1>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">Ставки кэшбэка</h1>
+          <p className="text-sm text-gray-500 mt-1">
+            Кликни <Link2 size={12} className="inline" /> чтобы добавить ссылку на источник.
+            Цвет даты: <span className="text-green-600">свежая</span> ·{' '}
+            <span className="text-amber-600">2-8 нед.</span> ·{' '}
+            <span className="text-red-600">более 2 мес.</span>
+          </p>
+        </div>
         {dirty.size > 0 && (
           <button
             onClick={saveAll}
@@ -117,7 +179,7 @@ export default function Rates() {
                 Банк
               </th>
               {CATEGORIES.map((cat) => (
-                <th key={cat.id} className="px-2 py-2.5 font-medium text-gray-500 text-center min-w-[70px]">
+                <th key={cat.id} className="px-2 py-2.5 font-medium text-gray-500 text-center min-w-[80px]">
                   <div className="flex flex-col items-center">
                     <span>{cat.emoji}</span>
                     <span className="text-[10px] mt-0.5">{cat.name}</span>
@@ -138,9 +200,11 @@ export default function Rates() {
                 {CATEGORIES.map((cat) => {
                   const key = getKey(bank.id, cat.id);
                   const val = rates.get(key);
+                  const m = meta.get(key);
                   const isDirty = dirty.has(key);
+                  const isEditing = editingSource === key;
                   return (
-                    <td key={cat.id} className="px-1 py-1 text-center">
+                    <td key={cat.id} className="px-1 py-1 text-center align-top">
                       <input
                         type="number"
                         step="0.5"
@@ -152,6 +216,56 @@ export default function Rates() {
                         onChange={(e) => updateRate(bank.id, cat.id, e.target.value)}
                         placeholder="—"
                       />
+                      {val !== undefined && (
+                        <div className="mt-1 flex flex-col items-center gap-0.5">
+                          {m && (
+                            <span className={`text-[9px] ${freshnessColor(m.updatedAt)}`}>
+                              {formatRelative(m.updatedAt)}
+                            </span>
+                          )}
+                          {isEditing ? (
+                            <input
+                              type="url"
+                              autoFocus
+                              defaultValue={m?.sourceUrl ?? ''}
+                              onBlur={(e) => {
+                                updateSource(bank.id, cat.id, e.target.value);
+                                setEditingSource(null);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                if (e.key === 'Escape') setEditingSource(null);
+                              }}
+                              placeholder="https://..."
+                              className="w-20 text-[10px] border border-brand rounded px-1 py-0.5"
+                            />
+                          ) : m?.sourceUrl ? (
+                            <a
+                              href={m.sourceUrl}
+                              target="_blank"
+                              rel="noreferrer"
+                              onClick={(e) => {
+                                if (e.shiftKey) {
+                                  e.preventDefault();
+                                  setEditingSource(key);
+                                }
+                              }}
+                              title="Открыть источник (Shift+click — редактировать)"
+                              className="text-blue-500 hover:text-blue-700"
+                            >
+                              <ExternalLink size={10} />
+                            </a>
+                          ) : (
+                            <button
+                              onClick={() => setEditingSource(key)}
+                              title="Добавить источник"
+                              className="text-gray-300 hover:text-brand"
+                            >
+                              <Link2 size={10} />
+                            </button>
+                          )}
+                        </div>
+                      )}
                     </td>
                   );
                 })}

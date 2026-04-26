@@ -5,6 +5,7 @@ import Banks from './pages/Banks';
 import Rates from './pages/Rates';
 import Promos from './pages/Promos';
 import Tips from './pages/Tips';
+import Reports from './pages/Reports';
 
 export default function App() {
   return (
@@ -18,6 +19,7 @@ export default function App() {
             <Route path="/rates" element={<Rates />} />
             <Route path="/promos" element={<Promos />} />
             <Route path="/tips" element={<Tips />} />
+            <Route path="/reports" element={<Reports />} />
             <Route path="*" element={<Navigate to="/" />} />
           </Routes>
         </main>

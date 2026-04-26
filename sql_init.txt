@@ -27,8 +27,24 @@ CREATE TABLE bank_rates (
   bank_id TEXT NOT NULL REFERENCES banks(id) ON DELETE CASCADE,
   category_id TEXT NOT NULL,
   rate NUMERIC(5,2) NOT NULL,
+  updated_at TIMESTAMPTZ NOT NULL DEFAULT now(),
+  source_url TEXT,
   PRIMARY KEY (bank_id, category_id)
 );
+
+-- Auto-touch updated_at on UPDATE
+CREATE OR REPLACE FUNCTION bank_rates_touch_updated_at()
+RETURNS TRIGGER AS $$
+BEGIN
+  NEW.updated_at = now();
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER bank_rates_updated_at_trigger
+  BEFORE UPDATE ON bank_rates
+  FOR EACH ROW
+  EXECUTE FUNCTION bank_rates_touch_updated_at();
 
 -- 3. Promos
 CREATE TABLE promos (
@@ -65,6 +81,24 @@ CREATE TABLE tip_items (
   sort_order INTEGER NOT NULL DEFAULT 0
 );
 
+-- 7. Rate reports (краудсорс модерации ставок)
+CREATE TABLE rate_reports (
+  id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
+  bank_id TEXT NOT NULL REFERENCES banks(id) ON DELETE CASCADE,
+  category_id TEXT NOT NULL,
+  current_rate NUMERIC(5,2),         -- что показывало приложение
+  suggested_rate NUMERIC(5,2),       -- что юзер видит реально
+  comment TEXT,
+  source_url TEXT,
+  user_id UUID,                      -- nullable: anon reports allowed
+  status TEXT NOT NULL DEFAULT 'new'
+    CHECK (status IN ('new', 'resolved', 'rejected')),
+  created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+);
+
+CREATE INDEX rate_reports_status_created_idx
+  ON rate_reports (status, created_at DESC);
+
 -- 6. User cards
 CREATE TABLE user_cards (
   id UUID PRIMARY KEY DEFAULT gen_random_uuid(),
@@ -86,6 +120,7 @@ ALTER TABLE bank_rates ENABLE ROW LEVEL SECURITY;
 ALTER TABLE promos ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tips ENABLE ROW LEVEL SECURITY;
 ALTER TABLE tip_items ENABLE ROW LEVEL SECURITY;
+ALTER TABLE rate_reports ENABLE ROW LEVEL SECURITY;
 ALTER TABLE user_cards ENABLE ROW LEVEL SECURITY;
 
 -- Read-only for everyone (public tables)
@@ -94,6 +129,12 @@ CREATE POLICY "bank_rates_read" ON bank_rates FOR SELECT USING (true);
 CREATE POLICY "promos_read" ON promos FOR SELECT USING (true);
 CREATE POLICY "tips_read" ON tips FOR SELECT USING (true);
 CREATE POLICY "tip_items_read" ON tip_items FOR SELECT USING (true);
+
+-- rate_reports: anon may insert; admin (anon key) reads/updates/deletes
+CREATE POLICY "rate_reports_insert" ON rate_reports FOR INSERT WITH CHECK (true);
+CREATE POLICY "rate_reports_select" ON rate_reports FOR SELECT USING (true);
+CREATE POLICY "rate_reports_update" ON rate_reports FOR UPDATE USING (true);
+CREATE POLICY "rate_reports_delete" ON rate_reports FOR DELETE USING (true);
 
 -- user_cards: only owner can CRUD
 CREATE POLICY "user_cards_select" ON user_cards FOR SELECT USING (auth.uid() = user_id);

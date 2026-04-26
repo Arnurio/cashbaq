@@ -12,6 +12,13 @@ export interface BankConfig {
   tiers?: Record<BerekeTier, number>;
 }
 
+export interface RateMeta {
+  /** ISO timestamp когда ставка была верифицирована */
+  updatedAt: string;
+  /** Ссылка на источник (страница банка) */
+  sourceUrl?: string;
+}
+
 export interface Bank {
   id: string;
   name: string;
@@ -32,6 +39,8 @@ export interface Bank {
   config: BankConfig;
   /** Фиксированные ставки по категориям */
   baseRates: Record<string, number>;
+  /** Метаданные по каждой ставке (когда обновлена + источник). Может отсутствовать в статическом fallback. */
+  rateMeta?: Record<string, RateMeta>;
 }
 
 export interface UserCard {

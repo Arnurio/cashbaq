@@ -43,11 +43,17 @@ export async function fetchBanks(): Promise<Bank[]> {
 
   if (ratesErr || !ratesRaw) throw ratesErr;
 
-  // Group rates by bank_id
+  // Group rates and metadata by bank_id
   const ratesByBank = new Map<string, Record<string, number>>();
+  const metaByBank = new Map<string, Record<string, { updatedAt: string; sourceUrl?: string }>>();
   for (const r of ratesRaw) {
     if (!ratesByBank.has(r.bank_id)) ratesByBank.set(r.bank_id, {});
+    if (!metaByBank.has(r.bank_id)) metaByBank.set(r.bank_id, {});
     ratesByBank.get(r.bank_id)![r.category_id] = Number(r.rate);
+    metaByBank.get(r.bank_id)![r.category_id] = {
+      updatedAt: r.updated_at ?? new Date().toISOString(),
+      sourceUrl: r.source_url ?? undefined,
+    };
   }
 
   const banks: Bank[] = banksRaw.map((b) => ({
@@ -69,6 +75,7 @@ export async function fetchBanks(): Promise<Bank[]> {
     },
     config: b.config ?? {},
     baseRates: ratesByBank.get(b.id) ?? {},
+    rateMeta: metaByBank.get(b.id) ?? {},
   }));
 
   await setCache(CACHE_KEYS.BANKS, banks);
