@@ -14,6 +14,7 @@ import { CATEGORIES, BRAND_COLOR, BG_COLOR } from '../lib/constants';
 import { getBestCard, getCardRate } from '../lib/cashback';
 import { UserCard } from '../lib/types';
 import { useStaggerAnim, fadeStyle, PressableScale, CARD_SHADOW } from '../lib/animations';
+import { trackEvent } from '../lib/analytics';
 
 export default function FindScreen() {
   const [cards, setCards] = useState<UserCard[]>([]);
@@ -85,7 +86,21 @@ export default function FindScreen() {
                 styles.catRow,
                 isSelected && styles.catRowActive,
               ]}
-              onPress={() => setSelectedCat(isSelected ? null : cat.id)}
+              onPress={() => {
+                const next = isSelected ? null : cat.id;
+                setSelectedCat(next);
+                if (next) {
+                  const best = getBestCard(cards, banks, next);
+                  trackEvent('category_selected', { category: next });
+                  if (best) {
+                    trackEvent('best_card_shown', {
+                      category: next,
+                      bank_id: best.bank.id,
+                      rate: best.rate,
+                    });
+                  }
+                }
+              }}
             >
               <View style={[styles.catIconWrap, { backgroundColor: catColor + '18' }]}>
                 <Text style={styles.catEmoji}>{cat.emoji}</Text>

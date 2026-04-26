@@ -15,6 +15,7 @@ import { getCards, saveCards } from '../lib/storage';
 import { getCardRate, getMarketBestRate } from '../lib/cashback';
 import { UserCard, Bank, FreedomLevel, BerekeTier } from '../lib/types';
 import WowModal from '../components/WowModal';
+import { trackEvent } from '../lib/analytics';
 
 export default function AddCardScreen() {
   const router = useRouter();
@@ -80,6 +81,8 @@ export default function AddCardScreen() {
     const isFirstCard = existingCards.length === 0;
     const updatedCards = [...existingCards, newCard];
     await saveCards(updatedCards);
+
+    trackEvent('card_added', { bank_id: selectedBank.id, bank_type: selectedBank.type });
 
     if (isFirstCard) {
       // Calculate wow data
