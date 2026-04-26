@@ -12,6 +12,8 @@ import {
 } from '@expo-google-fonts/manrope';
 import { ToastProvider } from '../lib/Toast';
 import { getOnboarded } from '../lib/storage';
+import { onAuthStateChange } from '../lib/auth';
+import type { Session } from '@supabase/supabase-js';
 
 // Suppress known native-module warnings in production
 LogBox.ignoreLogs([
@@ -69,25 +71,37 @@ export default function RootLayout() {
     Manrope_800ExtraBold,
   });
   const [ready, setReady] = useState(false);
+  const [session, setSession] = useState<Session | null | undefined>(undefined);
   const router = useRouter();
   const segments = useSegments();
 
+  // Track auth state
   useEffect(() => {
-    if (!fontsLoaded) return;
+    const sub = onAuthStateChange((s) => setSession(s));
+    return () => sub.unsubscribe();
+  }, []);
 
-    getOnboarded().then((value) => {
+  useEffect(() => {
+    if (!fontsLoaded || session === undefined) return;
+
+    getOnboarded().then((onboarded) => {
       const inOnboarding = segments[0] === 'onboarding';
+      const inLogin = segments[0] === 'login';
 
-      if (!value && !inOnboarding) {
+      if (!onboarded && !inOnboarding) {
         router.replace('/onboarding');
-      } else if (value && inOnboarding) {
+      } else if (onboarded && inOnboarding) {
         router.replace('/(tabs)');
+      } else if (onboarded && !session && !inLogin) {
+        // Auth enabled: redirect to login if not authenticated
+        // Comment out next line to keep MVP "no auth" mode:
+        // router.replace('/login');
       }
 
       setReady(true);
       SplashScreen.hideAsync().catch(() => {});
     });
-  }, [fontsLoaded, segments]);
+  }, [fontsLoaded, session, segments]);
 
   if (!ready) {
     return null;
@@ -103,6 +117,7 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
+        <Stack.Screen name="login" options={{ gestureEnabled: false, headerShown: false }} />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
           name="find"
