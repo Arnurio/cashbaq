@@ -3,13 +3,13 @@ import { supabase } from '../lib/supabase';
 import { CheckCircle2, Circle, RefreshCw, ExternalLink } from 'lucide-react';
 
 const BANKS = [
-  { id: 'kaspi',   name: 'Kaspi Gold',        url: 'https://guide.kaspi.kz/client/ru/gold' },
-  { id: 'halyk',   name: 'Halyk Bonus',        url: 'https://halykbank.kz/en/card/halyk-bonus-card' },
-  { id: 'forte',   name: 'Forte Card',         url: 'https://bank.forte.kz/ru/cards' },
-  { id: 'bcc',     name: 'BCC Card',           url: 'https://bcc.kz/cards' },
-  { id: 'freedom', name: 'Freedom Card',       url: 'https://bankffin.kz/ru/cards' },
-  { id: 'bereke',  name: 'Bereke Card',        url: 'https://berekebank.kz/ru/visa-allin' },
-  { id: 'jusan',   name: 'Alatau City Card',   url: 'https://alataucitybank.kz/ru/cards' },
+  { id: 'kaspi',   name: 'Kaspi Gold',       url: 'https://guide.kaspi.kz/client/ru/gold',           ratesUrl: 'https://guide.kaspi.kz/client/ru/gold/bonus' },
+  { id: 'halyk',   name: 'Halyk Bonus',       url: 'https://halykbank.kz/en/card/halyk-bonus-card',   ratesUrl: 'https://halykbank.kz/en/halykclub/promo' },
+  { id: 'forte',   name: 'Forte Card',        url: 'https://bank.forte.kz/ru/cards',                  ratesUrl: 'https://forte.kz/cashbackplus' },
+  { id: 'bcc',     name: 'BCC Card',          url: 'https://bcc.kz/cards',                            ratesUrl: 'https://club.bcc.kz/' },
+  { id: 'freedom', name: 'Freedom Card',      url: 'https://bankffin.kz/ru/cards',                    ratesUrl: 'https://support.bankffin.kz/keshbek/kakoj-procent-po-keshbeku' },
+  { id: 'bereke',  name: 'Bereke Card',       url: 'https://berekebank.kz/ru/visa-allin',             ratesUrl: 'https://berekebank.kz/ru/visa-allin' },
+  { id: 'jusan',   name: 'Alatau City Card',  url: 'https://alataucitybank.kz/ru/cards',              ratesUrl: 'https://alataucitybank.kz/ru/cards' },
 ];
 
 interface CheckState {
@@ -140,15 +140,26 @@ export default function Checklist() {
                 )}
               </div>
 
-              <a
-                href={bank.url}
-                target="_blank"
-                rel="noopener noreferrer"
-                className="flex items-center gap-1 text-xs text-brand hover:underline flex-shrink-0"
-              >
-                Открыть сайт
-                <ExternalLink size={12} />
-              </a>
+              <div className="flex items-center gap-3 flex-shrink-0">
+                <a
+                  href={bank.ratesUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs text-amber-600 hover:underline"
+                >
+                  Ставки
+                  <ExternalLink size={12} />
+                </a>
+                <a
+                  href={bank.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center gap-1 text-xs text-brand hover:underline"
+                >
+                  Сайт
+                  <ExternalLink size={12} />
+                </a>
+              </div>
             </div>
           );
         })}
