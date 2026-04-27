@@ -10,6 +10,7 @@ import Tips from './pages/Tips';
 import Reports from './pages/Reports';
 import Analytics from './pages/Analytics';
 import Checklist from './pages/Checklist';
+import Notifications from './pages/Notifications';
 
 function AdminShell() {
   return (
@@ -25,6 +26,7 @@ function AdminShell() {
           <Route path="/reports" element={<Reports />} />
           <Route path="/analytics" element={<Analytics />} />
           <Route path="/checklist" element={<Checklist />} />
+          <Route path="/notifications" element={<Notifications />} />
           <Route path="*" element={<Navigate to="/" />} />
         </Routes>
       </main>

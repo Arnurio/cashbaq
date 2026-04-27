@@ -17,6 +17,7 @@ import { getCardRate, getMarketBestRate } from '../lib/cashback';
 import { UserCard, Bank } from '../lib/types';
 import ReportInaccuracyModal from '../components/ReportInaccuracyModal';
 import { trackEvent } from '../lib/analytics';
+import { syncSubscriptionBanks } from '../lib/notifications';
 
 function formatRelative(iso: string): string {
   const days = Math.floor((Date.now() - new Date(iso).getTime()) / (1000 * 60 * 60 * 24));
@@ -103,6 +104,7 @@ export default function CardDetailScreen() {
             const updated = cards.filter((c) => c.id !== cardId);
             await saveCards(updated);
             trackEvent('card_removed', { bank_id: bank.id });
+            syncSubscriptionBanks();
             router.back();
           },
         },
