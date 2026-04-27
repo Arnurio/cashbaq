@@ -1,6 +1,9 @@
 import { useState, useEffect } from 'react';
 import { supabase } from '../lib/supabase';
-import { CheckCircle2, Circle, RefreshCw, ExternalLink } from 'lucide-react';
+import { CheckCircle2, Circle, RefreshCw, ExternalLink, ClipboardList } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
+import Alert from '../components/Alert';
+import Button from '../components/Button';
 
 const BANKS = [
   { id: 'kaspi',   name: 'Kaspi Gold',       url: 'https://guide.kaspi.kz/client/ru/gold',           ratesUrl: 'https://guide.kaspi.kz/client/ru/gold/bonus' },
@@ -90,31 +93,25 @@ export default function Checklist() {
 
   return (
     <div>
-      <div className="flex items-center justify-between mb-6">
-        <div>
-          <h2 className="text-2xl font-bold text-gray-900">Еженедельный аудит ставок</h2>
-          <p className="text-sm text-gray-500 mt-1">Неделя с {getWeekLabel()}</p>
-        </div>
-        <button
-          onClick={reset}
-          className="flex items-center gap-2 text-sm text-gray-500 hover:text-gray-800 border border-gray-200 rounded-lg px-3 py-2"
-        >
-          <RefreshCw size={14} />
-          Сбросить
-        </button>
-      </div>
+      <PageHeader
+        title="Еженедельный аудит ставок"
+        icon={ClipboardList}
+        subtitle={`Неделя с ${getWeekLabel()}`}
+        action={
+          <Button variant="secondary" size="sm" onClick={reset}>
+            <RefreshCw size={14} />
+            Сбросить
+          </Button>
+        }
+      />
 
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-xl p-4 mb-6 text-sm text-red-700">
-          {error}
-        </div>
-      )}
+      {error && <Alert tone="error" className="mb-6">{error}</Alert>}
 
       {staleCount > 0 && (
-        <div className="bg-amber-50 border border-amber-200 rounded-xl p-4 mb-6 text-sm text-amber-800">
-          ⚠️ <strong>{staleCount} ставок</strong> не обновлялись 30+ дней. Приоритет — проверить их через{' '}
+        <Alert tone="warning" className="mb-6">
+          <strong>{staleCount} ставок</strong> не обновлялись 30+ дней. Приоритет — проверить их через{' '}
           <a href="/rates" className="underline font-medium">Ставки</a>.
-        </div>
+        </Alert>
       )}
 
       <div className="bg-white rounded-xl border border-gray-200 divide-y divide-gray-100 mb-6">

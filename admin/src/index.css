@@ -2,8 +2,19 @@
 
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
-  --color-brand: #0D7C5F;
+
+  /* Brand */
+  --color-brand:       #0D7C5F;
   --color-brand-light: #E6F5F0;
+
+  /* Surfaces */
+  --color-surface:    #FFFFFF;
+  --color-bg-app:     #F6F8FA;
+  --color-border:     #E5E7EB;
+
+  /* Radius */
+  --radius-card:  0.75rem;  /* 12px */
+  --radius-input: 0.5rem;   /* 8px */
 }
 
 body {

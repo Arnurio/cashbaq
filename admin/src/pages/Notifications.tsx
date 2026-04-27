@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { supabase, SUPABASE_URL } from '../lib/supabase';
 import { Bell, Send } from 'lucide-react';
+import PageHeader from '../components/PageHeader';
+import Alert from '../components/Alert';
+import Button from '../components/Button';
 
 interface Bank {
   id: string;
@@ -85,13 +88,11 @@ export default function Notifications() {
 
   return (
     <div className="max-w-2xl">
-      <div className="flex items-center gap-3 mb-2">
-        <Bell size={24} className="text-brand" />
-        <h2 className="text-2xl font-bold text-gray-900">Уведомления</h2>
-      </div>
-      <p className="text-sm text-gray-500 mb-6">
-        Отправь push всем пользователям, у которых добавлена карта выбранного банка.
-      </p>
+      <PageHeader
+        title="Уведомления"
+        icon={Bell}
+        subtitle="Отправь push всем пользователям, у которых добавлена карта выбранного банка."
+      />
 
       <div className="bg-white rounded-xl border border-gray-200 p-6 space-y-5">
         <div>
@@ -138,26 +139,13 @@ export default function Notifications() {
           <p className="text-xs text-gray-400 mt-1">{body.length}/200</p>
         </div>
 
-        {error && (
-          <div className="bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
-            {error}
-          </div>
-        )}
+        {error && <Alert tone="error">{error}</Alert>}
+        {result && <Alert tone="success">{result}</Alert>}
 
-        {result && (
-          <div className="bg-green-50 border border-green-200 rounded-lg p-3 text-sm text-green-700">
-            {result}
-          </div>
-        )}
-
-        <button
-          onClick={handleSend}
-          disabled={sending || audienceCount === 0}
-          className="flex items-center gap-2 bg-brand text-white px-5 py-2.5 rounded-lg text-sm font-semibold hover:opacity-90 disabled:opacity-50 transition-opacity"
-        >
+        <Button onClick={handleSend} disabled={audienceCount === 0} loading={sending}>
           <Send size={16} />
           {sending ? 'Отправка...' : 'Отправить уведомление'}
-        </button>
+        </Button>
 
         {audienceCount === 0 && (
           <p className="text-xs text-amber-600">
