@@ -1,13 +1,11 @@
 import { useEffect, useState } from 'react';
-import { supabase } from '../lib/supabase';
+import { supabase, SUPABASE_URL } from '../lib/supabase';
 import { Bell, Send } from 'lucide-react';
 
 interface Bank {
   id: string;
   name: string;
 }
-
-const SUPABASE_URL = 'https://cdtnvqlxsbwcdiapbdkh.supabase.co';
 
 export default function Notifications() {
   const [banks, setBanks] = useState<Bank[]>([]);
