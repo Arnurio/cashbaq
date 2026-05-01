@@ -29,11 +29,14 @@ interface Rate {
   rate: number;
   updated_at?: string;
   source_url?: string | null;
+  verified_by?: 'user' | 'community' | 'bank_site' | 'ai_estimate' | null;
+  verified_at?: string | null;
 }
 
 interface RateMeta {
   updatedAt: string;
   sourceUrl: string;
+  verifiedBy: 'user' | 'community' | 'bank_site' | 'ai_estimate';
 }
 
 function formatRelative(iso: string): string {
@@ -68,7 +71,7 @@ export default function Rates() {
 
   async function load() {
     const [b, r] = await Promise.all([
-      supabase.from('banks').select('id, name, color').order('name'),
+      supabase.from('banks').select('id, name, color').eq('is_active', true).order('name'),
       supabase.from('bank_rates').select('*'),
     ]);
     if (b.data) setBanks(b.data);
@@ -81,6 +84,7 @@ export default function Rates() {
         metaMap.set(key, {
           updatedAt: row.updated_at ?? new Date().toISOString(),
           sourceUrl: row.source_url ?? '',
+          verifiedBy: row.verified_by ?? 'ai_estimate',
         });
       });
       setRates(ratesMap);
@@ -107,7 +111,7 @@ export default function Rates() {
   function updateSource(bankId: string, catId: string, url: string) {
     const key = getKey(bankId, catId);
     const newMeta = new Map(meta);
-    const cur = newMeta.get(key) ?? { updatedAt: new Date().toISOString(), sourceUrl: '' };
+    const cur = newMeta.get(key) ?? { updatedAt: new Date().toISOString(), sourceUrl: '', verifiedBy: 'ai_estimate' as const };
     newMeta.set(key, { ...cur, sourceUrl: url });
     setMeta(newMeta);
     setDirty(new Set(dirty).add(key));
@@ -115,7 +119,12 @@ export default function Rates() {
 
   async function saveAll() {
     setSaving(true);
-    const upserts: { bank_id: string; category_id: string; rate: number; source_url: string | null }[] = [];
+    const nowIso = new Date().toISOString();
+    const upserts: {
+      bank_id: string; category_id: string; rate: number;
+      source_url: string | null;
+      verified_by: 'user'; verified_at: string; updated_at: string;
+    }[] = [];
     const deletes: { bank_id: string; category_id: string }[] = [];
 
     for (const key of dirty) {
@@ -128,6 +137,9 @@ export default function Rates() {
           category_id,
           rate,
           source_url: m?.sourceUrl?.trim() || null,
+          verified_by: 'user',
+          verified_at: nowIso,
+          updated_at: nowIso,
         });
       } else {
         deletes.push({ bank_id, category_id });
@@ -153,8 +165,13 @@ export default function Rates() {
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Ставки кэшбэка</h1>
           <p className="text-sm text-gray-500 mt-1">
-            Кликни <Link2 size={12} className="inline" /> чтобы добавить ссылку на источник.
-            Цвет даты: <span className="text-green-600">свежая</span> ·{' '}
+            Показаны только активные банки. Сохранение помечает ставку как{' '}
+            <span className="font-medium text-green-700">✓ verified</span> от пользователя.
+            Кликни <Link2 size={12} className="inline" /> чтобы добавить источник.
+          </p>
+          <p className="text-xs text-gray-400 mt-1">
+            Маркер: <span className="text-green-600">✓ verified</span> · <span className="text-red-500">⚠ AI</span>
+            {' · '}Цвет даты: <span className="text-green-600">свежая</span> ·{' '}
             <span className="text-amber-600">2-8 нед.</span> ·{' '}
             <span className="text-red-600">более 2 мес.</span>
           </p>
@@ -218,6 +235,18 @@ export default function Rates() {
                       />
                       {val !== undefined && (
                         <div className="mt-1 flex flex-col items-center gap-0.5">
+                          {m && (
+                            <span
+                              className={`text-[9px] font-semibold ${
+                                m.verifiedBy === 'user' || m.verifiedBy === 'bank_site'
+                                  ? 'text-green-600'
+                                  : 'text-red-500'
+                              }`}
+                              title={`Источник: ${m.verifiedBy}`}
+                            >
+                              {m.verifiedBy === 'user' || m.verifiedBy === 'bank_site' ? '✓' : '⚠ AI'}
+                            </span>
+                          )}
                           {m && (
                             <span className={`text-[9px] ${freshnessColor(m.updatedAt)}`}>
                               {formatRelative(m.updatedAt)}

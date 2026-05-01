@@ -33,13 +33,17 @@ async function setCache<T>(key: string, data: T): Promise<void> {
 export async function fetchBanks(): Promise<Bank[]> {
   const { data: banksRaw, error: banksErr } = await supabase
     .from('banks')
-    .select('*');
+    .select('*')
+    .eq('is_active', true);
 
   if (banksErr || !banksRaw) throw banksErr;
 
+  const activeIds = banksRaw.map((b) => b.id);
+
   const { data: ratesRaw, error: ratesErr } = await supabase
     .from('bank_rates')
-    .select('*');
+    .select('*')
+    .in('bank_id', activeIds);
 
   if (ratesErr || !ratesRaw) throw ratesErr;
 
@@ -85,10 +89,19 @@ export async function fetchBanks(): Promise<Bank[]> {
 // ── fetchPromos ──────────────────────────────────────
 
 export async function fetchPromos(): Promise<Promo[]> {
+  const { data: activeBanks, error: banksErr } = await supabase
+    .from('banks')
+    .select('id')
+    .eq('is_active', true);
+
+  if (banksErr || !activeBanks) throw banksErr;
+  const activeIds = activeBanks.map((b) => b.id);
+
   const { data, error } = await supabase
     .from('promos')
     .select('*')
-    .eq('is_active', true);
+    .eq('is_active', true)
+    .in('bank_id', activeIds);
 
   if (error || !data) throw error;
 
@@ -117,6 +130,14 @@ export async function fetchTips(): Promise<Tip[]> {
 
   if (tipsErr || !tipsRaw) throw tipsErr;
 
+  const { data: activeBanks, error: banksErr2 } = await supabase
+    .from('banks')
+    .select('id')
+    .eq('is_active', true);
+
+  if (banksErr2 || !activeBanks) throw banksErr2;
+  const activeIds = new Set(activeBanks.map((b) => b.id));
+
   const { data: itemsRaw, error: itemsErr } = await supabase
     .from('tip_items')
     .select('*')
@@ -124,8 +145,11 @@ export async function fetchTips(): Promise<Tip[]> {
 
   if (itemsErr || !itemsRaw) throw itemsErr;
 
+  // Hide tip items that mention inactive banks
+  const filteredItems = itemsRaw.filter((item) => !item.bank_id || activeIds.has(item.bank_id));
+
   const itemsByTip = new Map<string, { text: string; emoji: string; bankId?: string }[]>();
-  for (const item of itemsRaw) {
+  for (const item of filteredItems) {
     if (!itemsByTip.has(item.tip_id)) itemsByTip.set(item.tip_id, []);
     itemsByTip.get(item.tip_id)!.push({
       text: item.description,
