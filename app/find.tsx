@@ -137,6 +137,14 @@ export default function FindScreen() {
                 <Text style={styles.bestPillText}>{bestCard.bank.card}</Text>
               </View>
               <Text style={styles.bestRate}>{bestCard.rate}%</Text>
+              {(() => {
+                const merchants = bestCard.bank.rateMeta?.[selectedCat!]?.merchants;
+                return merchants && merchants.length > 0 ? (
+                  <Text style={styles.bestMerchants}>
+                    {merchants.join(' · ')}
+                  </Text>
+                ) : null;
+              })()}
               <Text style={styles.bestLimit}>
                 Лимит: {bestCard.bank.limits.monthly.toLocaleString('ru-RU')} ₸/мес
               </Text>
@@ -301,6 +309,13 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope_800ExtraBold',
     fontSize: 38,
     color: BRAND_COLOR,
+  },
+  bestMerchants: {
+    fontFamily: 'Manrope_500Medium',
+    fontSize: 12,
+    color: '#047857',
+    marginTop: 2,
+    marginBottom: 2,
   },
   bestLimit: {
     fontFamily: 'Manrope_500Medium',

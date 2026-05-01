@@ -49,7 +49,7 @@ export async function fetchBanks(): Promise<Bank[]> {
 
   // Group rates and metadata by bank_id
   const ratesByBank = new Map<string, Record<string, number>>();
-  const metaByBank = new Map<string, Record<string, { updatedAt: string; sourceUrl?: string }>>();
+  const metaByBank = new Map<string, Record<string, { updatedAt: string; sourceUrl?: string; merchants?: string[] }>>();
   for (const r of ratesRaw) {
     if (!ratesByBank.has(r.bank_id)) ratesByBank.set(r.bank_id, {});
     if (!metaByBank.has(r.bank_id)) metaByBank.set(r.bank_id, {});
@@ -57,6 +57,7 @@ export async function fetchBanks(): Promise<Bank[]> {
     metaByBank.get(r.bank_id)![r.category_id] = {
       updatedAt: r.updated_at ?? new Date().toISOString(),
       sourceUrl: r.source_url ?? undefined,
+      merchants: r.merchants?.length ? r.merchants : undefined,
     };
   }
 

@@ -31,12 +31,14 @@ interface Rate {
   source_url?: string | null;
   verified_by?: 'user' | 'community' | 'bank_site' | 'ai_estimate' | null;
   verified_at?: string | null;
+  merchants?: string[] | null;
 }
 
 interface RateMeta {
   updatedAt: string;
   sourceUrl: string;
   verifiedBy: 'user' | 'community' | 'bank_site' | 'ai_estimate';
+  merchants: string[];
 }
 
 function formatRelative(iso: string): string {
@@ -64,6 +66,7 @@ export default function Rates() {
   const [dirty, setDirty] = useState<Set<string>>(new Set());
   const [saving, setSaving] = useState(false);
   const [editingSource, setEditingSource] = useState<string | null>(null);
+  const [editingMerchants, setEditingMerchants] = useState<string | null>(null);
 
   useEffect(() => {
     load();
@@ -85,6 +88,7 @@ export default function Rates() {
           updatedAt: row.updated_at ?? new Date().toISOString(),
           sourceUrl: row.source_url ?? '',
           verifiedBy: row.verified_by ?? 'ai_estimate',
+          merchants: row.merchants ?? [],
         });
       });
       setRates(ratesMap);
@@ -111,8 +115,18 @@ export default function Rates() {
   function updateSource(bankId: string, catId: string, url: string) {
     const key = getKey(bankId, catId);
     const newMeta = new Map(meta);
-    const cur = newMeta.get(key) ?? { updatedAt: new Date().toISOString(), sourceUrl: '', verifiedBy: 'ai_estimate' as const };
+    const cur = newMeta.get(key) ?? { updatedAt: new Date().toISOString(), sourceUrl: '', verifiedBy: 'ai_estimate' as const, merchants: [] };
     newMeta.set(key, { ...cur, sourceUrl: url });
+    setMeta(newMeta);
+    setDirty(new Set(dirty).add(key));
+  }
+
+  function updateMerchants(bankId: string, catId: string, raw: string) {
+    const key = getKey(bankId, catId);
+    const newMeta = new Map(meta);
+    const cur = newMeta.get(key) ?? { updatedAt: new Date().toISOString(), sourceUrl: '', verifiedBy: 'ai_estimate' as const, merchants: [] };
+    const merchants = raw.split(',').map((s) => s.trim()).filter(Boolean);
+    newMeta.set(key, { ...cur, merchants });
     setMeta(newMeta);
     setDirty(new Set(dirty).add(key));
   }
@@ -122,7 +136,7 @@ export default function Rates() {
     const nowIso = new Date().toISOString();
     const upserts: {
       bank_id: string; category_id: string; rate: number;
-      source_url: string | null;
+      source_url: string | null; merchants: string[];
       verified_by: 'user'; verified_at: string; updated_at: string;
     }[] = [];
     const deletes: { bank_id: string; category_id: string }[] = [];
@@ -137,6 +151,7 @@ export default function Rates() {
           category_id,
           rate,
           source_url: m?.sourceUrl?.trim() || null,
+          merchants: m?.merchants ?? [],
           verified_by: 'user',
           verified_at: nowIso,
           updated_at: nowIso,
@@ -220,6 +235,7 @@ export default function Rates() {
                   const m = meta.get(key);
                   const isDirty = dirty.has(key);
                   const isEditing = editingSource === key;
+                  const isEditingMerchants = editingMerchants === key;
                   return (
                     <td key={cat.id} className="px-1 py-1 text-center align-top">
                       <input
@@ -291,6 +307,44 @@ export default function Rates() {
                               className="text-gray-300 hover:text-brand"
                             >
                               <Link2 size={10} />
+                            </button>
+                          )}
+                          {/* Merchants */}
+                          {isEditingMerchants ? (
+                            <input
+                              type="text"
+                              autoFocus
+                              defaultValue={m?.merchants?.join(', ') ?? ''}
+                              onBlur={(e) => {
+                                updateMerchants(bank.id, cat.id, e.target.value);
+                                setEditingMerchants(null);
+                              }}
+                              onKeyDown={(e) => {
+                                if (e.key === 'Enter') (e.target as HTMLInputElement).blur();
+                                if (e.key === 'Escape') setEditingMerchants(null);
+                              }}
+                              placeholder="Magnum, Arbuz..."
+                              className="w-24 text-[9px] border border-brand rounded px-1 py-0.5 mt-0.5"
+                            />
+                          ) : m?.merchants && m.merchants.length > 0 ? (
+                            <button
+                              onClick={() => setEditingMerchants(key)}
+                              className="mt-0.5 flex flex-wrap gap-0.5 justify-center max-w-[72px]"
+                              title="Редактировать магазины"
+                            >
+                              {m.merchants.map((mc) => (
+                                <span key={mc} className="text-[8px] bg-gray-100 text-gray-600 rounded px-1 py-0.5 leading-none">
+                                  {mc}
+                                </span>
+                              ))}
+                            </button>
+                          ) : (
+                            <button
+                              onClick={() => setEditingMerchants(key)}
+                              title="Добавить магазины (Magnum, Arbuz...)"
+                              className="text-[8px] text-gray-300 hover:text-brand mt-0.5"
+                            >
+                              + магазин
                             </button>
                           )}
                         </div>

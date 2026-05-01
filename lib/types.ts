@@ -17,6 +17,8 @@ export interface RateMeta {
   updatedAt: string;
   /** Ссылка на источник (страница банка) */
   sourceUrl?: string;
+  /** Конкретные магазины/сервисы где работает кэшбэк (напр. ["Magnum", "Arbuz"]) */
+  merchants?: string[];
 }
 
 export interface Bank {
