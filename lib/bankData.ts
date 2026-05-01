@@ -1,5 +1,10 @@
 import { Bank, Promo, Tip } from './types';
 
+// ВНИМАНИЕ: статический fallback. Используется только когда Supabase недоступен.
+// Активные банки = Kaspi, Halyk, Freedom (личные счета владельца, ставки проверены).
+// Forte, BCC, Bereke, Alatau City — деактивированы (см. STRATEGY.md, ревизия мая 2026).
+// До появления A/B/C-источников эти банки не показываются в приложении.
+
 export const BANKS: Bank[] = [
   {
     id: 'kaspi',
@@ -47,46 +52,6 @@ export const BANKS: Bank[] = [
     },
   },
   {
-    id: 'forte',
-    name: 'Forte',
-    card: 'ForteBlack',
-    color: '#212121',
-    bg: '#F5F5F5',
-    gradient: ['#424242', '#212121'],
-    type: 'selectable',
-    desc: 'Выбери 3 категории с кэшбэком до 15%',
-    note: 'Максимальный кэшбэк при правильном выборе',
-    url: 'https://forte.kz',
-    lounge: true,
-    insurance: true,
-    limits: { monthly: 30000, daily: 10000 },
-    config: { maxCategories: 3 },
-    baseRates: {
-      _selected: 15,
-      _default: 1,
-    },
-  },
-  {
-    id: 'bcc',
-    name: 'BCC',
-    card: '#картакарта',
-    color: '#1565C0',
-    bg: '#E3F2FD',
-    gradient: ['#1976D2', '#1565C0'],
-    type: 'selectable',
-    desc: 'Выбери 3 категории с кэшбэком до 10%',
-    note: 'Хороший вариант для тех кто хочет выбирать категории',
-    url: 'https://bcc.kz',
-    lounge: false,
-    insurance: false,
-    limits: { monthly: 20000 },
-    config: { maxCategories: 3 },
-    baseRates: {
-      _selected: 10,
-      _default: 1,
-    },
-  },
-  {
     id: 'freedom',
     name: 'Freedom',
     card: 'Freedom Card',
@@ -110,72 +75,9 @@ export const BANKS: Bank[] = [
     },
     baseRates: {},
   },
-  {
-    id: 'bereke',
-    name: 'Bereke',
-    card: 'Bereke Card',
-    color: '#00695C',
-    bg: '#E0F2F1',
-    gradient: ['#00796B', '#00695C'],
-    type: 'subscription',
-    desc: 'Кэшбэк зависит от суммы депозита: 0–7%',
-    note: 'Чем больше депозит, тем выше кэшбэк',
-    url: 'https://berekebank.kz',
-    lounge: false,
-    insurance: false,
-    limits: { monthly: 30000 },
-    config: {
-      tiers: {
-        zero: 0,
-        basic: 1,
-        medium: 3,
-        high: 5,
-        max: 7,
-      },
-    },
-    baseRates: {},
-  },
-  {
-    id: 'jusan',
-    name: 'Alatau City Bank',
-    card: 'Alatau Card',
-    color: '#F57F17',
-    bg: '#FFF8E1',
-    gradient: ['#F9A825', '#F57F17'],
-    type: 'fixed',
-    desc: 'Продукты 3%, аптеки 3%, АЗС 2%, остальное 1%',
-    note: 'Хороший кэшбэк на продукты и аптеки',
-    url: 'https://alataubank.kz',
-    lounge: false,
-    insurance: false,
-    limits: { monthly: 30000 },
-    config: {},
-    baseRates: {
-      grocery: 3,
-      pharmacy: 3,
-      fuel: 2,
-      restaurants: 1,
-      transport: 1,
-      clothing: 1,
-      entertainment: 1,
-      travel: 1,
-      online: 1,
-      telecom: 1,
-    },
-  },
 ];
 
 export const PROMOS: Promo[] = [
-  {
-    bankId: 'forte',
-    title: 'Forte × Starbucks',
-    desc: '10% кэшбэк в Starbucks',
-    category: 'restaurants',
-    rate: 10,
-    emoji: '☕',
-    endDate: '2026-04-30',
-    isNew: true,
-  },
   {
     bankId: 'halyk',
     title: 'Halyk × Sinooil',
@@ -196,46 +98,16 @@ export const PROMOS: Promo[] = [
     endDate: '2026-05-31',
     isNew: true,
   },
-  {
-    bankId: 'bcc',
-    title: 'BCC × Kino.kz',
-    desc: '5% кэшбэк на Kino.kz',
-    category: 'entertainment',
-    rate: 5,
-    emoji: '🎬',
-    endDate: '2026-04-30',
-    isNew: false,
-  },
 ];
 
 export const TIPS: Tip[] = [
-  {
-    id: 'lounge',
-    title: 'Бесплатные лаунжи',
-    emoji: '✈️',
-    items: [
-      { text: 'ForteBlack — бесплатный доступ в лаунжи аэропортов', emoji: '🏦' },
-      { text: 'Freedom Platinum — лаунжи по Priority Pass', emoji: '💳' },
-      { text: 'Проверь условия: количество визитов может быть ограничено', emoji: '⚠️' },
-    ],
-  },
-  {
-    id: 'insurance',
-    title: 'Страховка путешественников',
-    emoji: '🛡',
-    items: [
-      { text: 'ForteBlack включает страховку при выезде за рубеж', emoji: '🏦' },
-      { text: 'Freedom Gold/Platinum — страховка для путешествий', emoji: '💳' },
-      { text: 'Покрытие до $50 000 в зависимости от банка', emoji: '💰' },
-    ],
-  },
   {
     id: 'bonus-vs-cash',
     title: 'Бонусы vs деньги',
     emoji: '💡',
     items: [
       { text: 'Kaspi, Halyk — кэшбэк начисляется бонусами', emoji: '⭐' },
-      { text: 'Forte, Freedom — реальные деньги на счёт', emoji: '💵' },
+      { text: 'Freedom — реальные деньги на счёт', emoji: '💵' },
       { text: 'Бонусы могут сгореть, деньги — нет', emoji: '🔥' },
     ],
   },
@@ -246,7 +118,6 @@ export const TIPS: Tip[] = [
     items: [
       { text: 'Kaspi Gold — бесплатно в своих банкоматах', emoji: '✅' },
       { text: 'Freedom — бесплатно до 500 000 ₸/мес', emoji: '✅' },
-      { text: 'ForteBlack — без комиссии до 1 000 000 ₸/мес', emoji: '✅' },
     ],
   },
   {

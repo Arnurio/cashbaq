@@ -37,11 +37,11 @@ const DEMO_CARDS: UserCard[] = [
     selectedCategories: [],
   },
   {
-    id: 'demo_forte',
-    bankId: 'forte',
-    name: 'ForteBlack',
+    id: 'demo_halyk',
+    bankId: 'halyk',
+    name: 'Halyk Bonus',
     useNfc: false,
-    selectedCategories: ['restaurants', 'clothing', 'entertainment'],
+    selectedCategories: [],
   },
   {
     id: 'demo_freedom',

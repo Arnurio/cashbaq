@@ -1,5 +1,5 @@
 import { getCardRate, getBestCard, getMarketBestRate } from '../cashback';
-import { BANKS } from '../bankData';
+import { BANKS } from './fixtures/testBanks';
 import { Bank, UserCard } from '../types';
 
 // ─── Helpers ────────────────────────────────────────────────
