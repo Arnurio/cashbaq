@@ -188,17 +188,29 @@ const CATEGORY_META: Record<string, { icon: string; color: string; places: strin
 };
 
 export async function fetchCategories(): Promise<Category[]> {
-  const { data, error } = await supabase
-    .from('categories')
-    .select('id, name, emoji')
-    .eq('is_active', true)
-    .order('sort_order');
+  const [catsRes, placesRes] = await Promise.all([
+    supabase.from('categories').select('id, name, emoji').eq('is_active', true).order('sort_order'),
+    supabase.from('category_places').select('category_id, name').order('sort_order'),
+  ]);
 
-  if (error || !data) throw error;
+  if (catsRes.error || !catsRes.data) throw catsRes.error;
 
-  const categories: Category[] = data.map((c) => {
+  const placesByCategory = new Map<string, string[]>();
+  for (const p of (placesRes.data ?? [])) {
+    if (!placesByCategory.has(p.category_id)) placesByCategory.set(p.category_id, []);
+    placesByCategory.get(p.category_id)!.push(p.name);
+  }
+
+  const categories: Category[] = catsRes.data.map((c) => {
     const meta = CATEGORY_META[c.id] ?? { icon: 'Tag', color: '#6B7280', places: [] };
-    return { id: c.id, name: c.name, emoji: c.emoji, ...meta };
+    return {
+      id: c.id,
+      name: c.name,
+      emoji: c.emoji,
+      icon: meta.icon,
+      color: meta.color,
+      places: placesByCategory.get(c.id) ?? meta.places,
+    };
   });
 
   await setCache(CACHE_KEYS.CATEGORIES, categories);
