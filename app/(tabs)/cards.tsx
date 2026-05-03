@@ -19,7 +19,7 @@ export default function CardsScreen() {
   const [cards, setCards] = useState<UserCard[]>([]);
   const { banks, loading } = useData();
   const router = useRouter();
-  const anims = useStaggerAnim(cards.length + 2);
+  const anims = useStaggerAnim(20);
 
   useFocusEffect(
     useCallback(() => {
