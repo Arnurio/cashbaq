@@ -1,18 +1,15 @@
 import { useEffect, useState } from 'react';
 import { supabase } from '../lib/supabase';
 import { Save, ExternalLink, Link2 } from 'lucide-react';
+import { useToast } from '../components/Toast';
 
-const CATEGORIES = [
-  { id: 'grocery', name: 'Продукты', emoji: '🛒' },
-  { id: 'restaurants', name: 'Кафе', emoji: '🍽' },
-  { id: 'transport', name: 'Транспорт', emoji: '🚕' },
-  { id: 'clothing', name: 'Одежда', emoji: '👗' },
-  { id: 'entertainment', name: 'Развлечения', emoji: '🎬' },
-  { id: 'fuel', name: 'АЗС', emoji: '⛽' },
-  { id: 'travel', name: 'Путешествия', emoji: '✈️' },
-  { id: 'pharmacy', name: 'Аптеки', emoji: '💊' },
-  { id: 'online', name: 'Онлайн', emoji: '🌐' },
-  { id: 'telecom', name: 'Связь', emoji: '📱' },
+interface Category {
+  id: string;
+  name: string;
+  emoji: string;
+}
+
+const EXTRA_CATEGORIES: Category[] = [
   { id: '_selected', name: 'Выбранные', emoji: '⭐' },
   { id: '_default', name: 'По умолч.', emoji: '📌' },
 ];
@@ -58,7 +55,9 @@ function freshnessColor(iso: string): string {
 }
 
 export default function Rates() {
+  const toast = useToast();
   const [banks, setBanks] = useState<Bank[]>([]);
+  const [categories, setCategories] = useState<Category[]>([]);
   const [rates, setRates] = useState<Map<string, number>>(new Map());
   const [meta, setMeta] = useState<Map<string, RateMeta>>(new Map());
   const [dirty, setDirty] = useState<Set<string>>(new Set());
@@ -70,11 +69,13 @@ export default function Rates() {
   }, []);
 
   async function load() {
-    const [b, r] = await Promise.all([
+    const [b, c, r] = await Promise.all([
       supabase.from('banks').select('id, name, color').eq('is_active', true).order('name'),
+      supabase.from('categories').select('id, name, emoji').eq('is_active', true).order('sort_order'),
       supabase.from('bank_rates').select('*'),
     ]);
     if (b.data) setBanks(b.data);
+    if (c.data) setCategories([...c.data, ...EXTRA_CATEGORIES]);
     if (r.data) {
       const ratesMap = new Map<string, number>();
       const metaMap = new Map<string, RateMeta>();
@@ -156,11 +157,12 @@ export default function Rates() {
     setDirty(new Set());
     setSaving(false);
     setEditingSource(null);
+    toast.success(`Сохранено ${upserts.length} ставок`);
     await load();
   }
 
   return (
-    <div>
+    <div className="p-8">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h1 className="text-2xl font-bold text-gray-900">Ставки кэшбэка</h1>
@@ -195,7 +197,7 @@ export default function Rates() {
               <th className="text-left px-3 py-2.5 font-medium text-gray-500 sticky left-0 bg-gray-50 z-10">
                 Банк
               </th>
-              {CATEGORIES.map((cat) => (
+              {categories.map((cat) => (
                 <th key={cat.id} className="px-2 py-2.5 font-medium text-gray-500 text-center min-w-[80px]">
                   <div className="flex flex-col items-center">
                     <span>{cat.emoji}</span>
@@ -214,7 +216,7 @@ export default function Rates() {
                     {bank.name}
                   </div>
                 </td>
-                {CATEGORIES.map((cat) => {
+                {categories.map((cat) => {
                   const key = getKey(bank.id, cat.id);
                   const val = rates.get(key);
                   const m = meta.get(key);

@@ -12,14 +12,14 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Search, CreditCard, Bell, Clock } from 'lucide-react-native';
 import { getCards } from '../../lib/storage';
 import { useData } from '../../lib/useData';
-import { CATEGORIES, BRAND_COLOR, BG_COLOR } from '../../lib/constants';
+import { BRAND_COLOR, BG_COLOR } from '../../lib/constants';
 import { getCardRate, getBestCard } from '../../lib/cashback';
 import { UserCard } from '../../lib/types';
 import { useStaggerAnim, fadeStyle, PressableScale, CARD_SHADOW } from '../../lib/animations';
 
 export default function HomeScreen() {
   const [cards, setCards] = useState<UserCard[]>([]);
-  const { banks, promos, loading } = useData();
+  const { banks, promos, categories, loading } = useData();
   const router = useRouter();
   const anims = useStaggerAnim(5);
 
@@ -34,7 +34,7 @@ export default function HomeScreen() {
   const maxRate = useMemo(() => cards.reduce((max, card) => {
     const bank = bankMap.get(card.bankId);
     if (!bank) return max;
-    for (const cat of CATEGORIES) {
+    for (const cat of categories) {
       const rate = getCardRate(card, bank, cat.id);
       if (rate > max) max = rate;
     }
@@ -46,13 +46,14 @@ export default function HomeScreen() {
     return sum + (bank?.limits.monthly ?? 0);
   }, 0), [cards, bankMap]);
 
-  const topCatRates = useMemo(() => CATEGORIES.map((cat) => {
+  // Top category rates for hero badges
+  const topCatRates = useMemo(() => categories.map((cat) => {
     const best = getBestCard(cards, banks, cat.id);
     return { emoji: cat.emoji, rate: best?.rate ?? 0 };
   })
     .filter((c) => c.rate > 0)
     .sort((a, b) => b.rate - a.rate)
-    .slice(0, 3), [cards, banks]);
+    .slice(0, 3), [categories, cards, banks]);
 
   const selectableBanks = useMemo(() => cards.filter((c) => {
     const bank = bankMap.get(c.bankId);
@@ -153,7 +154,7 @@ export default function HomeScreen() {
               renderItem={({ item }) => {
                 const bank = bankMap.get(item.bankId);
                 if (!bank) return null;
-                const bestRate = CATEGORIES.reduce((max, cat) => {
+                const bestRate = categories.reduce((max, cat) => {
                   const r = getCardRate(item, bank, cat.id);
                   return r > max ? r : max;
                 }, 0);

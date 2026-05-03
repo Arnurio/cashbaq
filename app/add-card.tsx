@@ -10,7 +10,7 @@ import {
 import { useRouter, useFocusEffect } from 'expo-router';
 import { Check } from 'lucide-react-native';
 import { useData } from '../lib/useData';
-import { CATEGORIES, BRAND_COLOR, BG_COLOR } from '../lib/constants';
+import { BRAND_COLOR, BG_COLOR } from '../lib/constants';
 import { getCards, saveCards } from '../lib/storage';
 import { getCardRate, getMarketBestRate } from '../lib/cashback';
 import { UserCard, Bank, FreedomLevel, BerekeTier } from '../lib/types';
@@ -19,7 +19,7 @@ import { trackEvent } from '../lib/analytics';
 
 export default function AddCardScreen() {
   const router = useRouter();
-  const { banks, loading } = useData();
+  const { banks, categories, loading } = useData();
   const [step, setStep] = useState<1 | 2>(1);
   const [selectedBank, setSelectedBank] = useState<Bank | null>(null);
   const [existingCards, setExistingCards] = useState<UserCard[]>([]);
@@ -88,7 +88,7 @@ export default function AddCardScreen() {
       // Calculate wow data
       let maxRate = 0;
       let maxCatName = '';
-      for (const cat of CATEGORIES) {
+      for (const cat of categories) {
         const rate = getCardRate(newCard, selectedBank, cat.id);
         if (rate > maxRate) {
           maxRate = rate;
@@ -98,7 +98,7 @@ export default function AddCardScreen() {
 
       let marketRate = 0;
       let marketBankName = '';
-      for (const cat of CATEGORIES) {
+      for (const cat of categories) {
         const market = getMarketBestRate(banks, cat.id);
         if (market && market.rate > marketRate) {
           marketRate = market.rate;
@@ -227,7 +227,7 @@ export default function AddCardScreen() {
             Выбрано: {selectedCats.length}/{selectedBank.config.maxCategories}
           </Text>
 
-          {CATEGORIES.map((cat) => {
+          {categories.map((cat) => {
             const isSelected = selectedCats.includes(cat.id);
             return (
               <TouchableOpacity
