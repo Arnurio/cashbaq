@@ -13,6 +13,7 @@ jest.mock('../supabase', () => ({
         select: () => builder,
         eq: () => builder,
         order: () => builder,
+        in: () => builder,
         then: (resolve: (v: MockResponse) => void) => Promise.resolve(baseResp()).then(resolve),
       };
       return builder;
@@ -256,6 +257,13 @@ describe('fetchTips', () => {
       data: [
         { id: 'tip1', icon: '💡', title: 'Совет 1' },
         { id: 'tip2', icon: '🎯', title: 'Совет 2' },
+      ],
+      error: null,
+    };
+    tableData.banks = {
+      data: [
+        { id: 'kaspi', is_active: true },
+        { id: 'halyk', is_active: true },
       ],
       error: null,
     };
