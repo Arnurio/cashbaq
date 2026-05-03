@@ -107,7 +107,9 @@ export default function RootLayout() {
       setReady(true);
       SplashScreen.hideAsync().catch(() => {});
     });
-  }, [fontsLoaded, session, segments]);
+    // segments intentionally excluded: re-running on every navigation causes redirect loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fontsLoaded, session]);
 
   if (!ready) {
     return null;

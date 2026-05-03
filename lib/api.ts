@@ -36,7 +36,7 @@ export async function fetchBanks(): Promise<Bank[]> {
     .select('*')
     .eq('is_active', true);
 
-  if (banksErr || !banksRaw) throw banksErr;
+  if (banksErr || !banksRaw) throw banksErr ?? new Error('Empty response: banks');
 
   const activeIds = banksRaw.map((b) => b.id);
 
@@ -45,7 +45,7 @@ export async function fetchBanks(): Promise<Bank[]> {
     .select('*')
     .in('bank_id', activeIds);
 
-  if (ratesErr || !ratesRaw) throw ratesErr;
+  if (ratesErr || !ratesRaw) throw ratesErr ?? new Error('Empty response: bank_rates');
 
   // Group rates and metadata by bank_id
   const ratesByBank = new Map<string, Record<string, number>>();
@@ -94,7 +94,7 @@ export async function fetchPromos(): Promise<Promo[]> {
     .select('id')
     .eq('is_active', true);
 
-  if (banksErr || !activeBanks) throw banksErr;
+  if (banksErr || !activeBanks) throw banksErr ?? new Error('Empty response: active banks');
   const activeIds = activeBanks.map((b) => b.id);
 
   const { data, error } = await supabase
@@ -103,7 +103,7 @@ export async function fetchPromos(): Promise<Promo[]> {
     .eq('is_active', true)
     .in('bank_id', activeIds);
 
-  if (error || !data) throw error;
+  if (error || !data) throw error ?? new Error('Empty response: promos');
 
   const promos: Promo[] = data.map((p) => ({
     bankId: p.bank_id,
@@ -128,14 +128,14 @@ export async function fetchTips(): Promise<Tip[]> {
     .select('*')
     .order('sort_order');
 
-  if (tipsErr || !tipsRaw) throw tipsErr;
+  if (tipsErr || !tipsRaw) throw tipsErr ?? new Error('Empty response: tips');
 
   const { data: activeBanks, error: banksErr2 } = await supabase
     .from('banks')
     .select('id')
     .eq('is_active', true);
 
-  if (banksErr2 || !activeBanks) throw banksErr2;
+  if (banksErr2 || !activeBanks) throw banksErr2 ?? new Error('Empty response: active banks');
   const activeIds = new Set(activeBanks.map((b) => b.id));
 
   const { data: itemsRaw, error: itemsErr } = await supabase
@@ -143,7 +143,7 @@ export async function fetchTips(): Promise<Tip[]> {
     .select('*')
     .order('sort_order');
 
-  if (itemsErr || !itemsRaw) throw itemsErr;
+  if (itemsErr || !itemsRaw) throw itemsErr ?? new Error('Empty response: tip_items');
 
   // Hide tip items that mention inactive banks
   const filteredItems = itemsRaw.filter((item) => !item.bank_id || activeIds.has(item.bank_id));
