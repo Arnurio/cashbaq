@@ -1,5 +1,5 @@
 import React, { Component, useEffect, useState } from 'react';
-import { LogBox } from 'react-native';
+import { LogBox, View, Text, StyleSheet } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { SplashScreen } from 'expo-router';
 import {
@@ -50,14 +50,16 @@ class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error) {
-    // Log but don't crash – prevents red error banners
     console.warn('ErrorBoundary caught:', error.message);
   }
 
   render() {
     if (this.state.hasError) {
-      // Silently recover — re-render children on next state change
-      return this.props.children;
+      return (
+        <View style={errorStyles.container}>
+          <Text style={errorStyles.text}>Что-то пошло не так. Перезапустите приложение.</Text>
+        </View>
+      );
     }
     return this.props.children;
   }
@@ -162,3 +164,18 @@ export default function RootLayout() {
     </ErrorBoundary>
   );
 }
+
+const errorStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F6F8FA',
+    padding: 32,
+  },
+  text: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+});
