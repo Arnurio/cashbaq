@@ -36,7 +36,9 @@ export async function registerForPushNotifications(): Promise<string | null> {
     });
   }
 
-  const token = await Notifications.getExpoPushTokenAsync();
+  const token = await Notifications.getExpoPushTokenAsync({
+    projectId: '32cc8607-6968-472c-a1b0-208c0276db2e',
+  });
   return token.data;
 }
 

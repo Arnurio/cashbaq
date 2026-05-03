@@ -49,6 +49,17 @@ export default function CardDetailScreen() {
   const bankMap = new Map(banks.map((b) => [b.id, b]));
   const bank = card ? bankMap.get(card.bankId) : null;
 
+  if (cards.length > 0 && (!card || !bank)) {
+    return (
+      <View style={styles.loading}>
+        <Text style={styles.loadingText}>Карта не найдена</Text>
+        <TouchableOpacity onPress={() => router.back()} style={styles.backBtn}>
+          <Text style={styles.backBtnText}>← Назад</Text>
+        </TouchableOpacity>
+      </View>
+    );
+  }
+
   if (!card || !bank) {
     return (
       <View style={styles.loading}>
@@ -273,11 +284,21 @@ const styles = StyleSheet.create({
     alignItems: 'center',
     justifyContent: 'center',
     backgroundColor: BG_COLOR,
+    gap: 16,
   },
   loadingText: {
     fontFamily: 'Manrope_500Medium',
     fontSize: 16,
     color: '#6B7280',
+  },
+  backBtn: {
+    paddingHorizontal: 20,
+    paddingVertical: 10,
+  },
+  backBtnText: {
+    fontFamily: 'Manrope_600SemiBold',
+    fontSize: 15,
+    color: BRAND_COLOR,
   },
   miniCard: {
     borderRadius: 20,

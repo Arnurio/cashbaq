@@ -35,20 +35,24 @@ async function init() {
   initialized = true;
 
   // Step 1: load from cache instantly
-  const [cachedBanks, cachedPromos, cachedTips] = await Promise.all([
-    getCachedBanks(),
-    getCachedPromos(),
-    getCachedTips(),
-  ]);
+  try {
+    const [cachedBanks, cachedPromos, cachedTips] = await Promise.all([
+      getCachedBanks(),
+      getCachedPromos(),
+      getCachedTips(),
+    ]);
 
-  if (cachedBanks || cachedPromos || cachedTips) {
-    globalData = {
-      banks: cachedBanks ?? [],
-      promos: cachedPromos ?? [],
-      tips: cachedTips ?? [],
-      loading: false,
-    };
-    notify();
+    if (cachedBanks || cachedPromos || cachedTips) {
+      globalData = {
+        banks: cachedBanks ?? [],
+        promos: cachedPromos ?? [],
+        tips: cachedTips ?? [],
+        loading: false,
+      };
+      notify();
+    }
+  } catch {
+    // cache read failure — continue to network fetch
   }
 
   // Step 2: refresh from Supabase in background
@@ -62,11 +66,8 @@ async function init() {
     notify();
   } catch (err) {
     console.warn('Supabase fetch error:', err);
-    // If we had cache, keep it; otherwise stay empty
-    if (globalData.loading) {
-      globalData = { ...globalData, loading: false };
-      notify();
-    }
+    globalData = { ...globalData, loading: false };
+    notify();
   }
 }
 

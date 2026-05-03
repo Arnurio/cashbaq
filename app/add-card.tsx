@@ -113,19 +113,21 @@ export default function AddCardScreen() {
     }
   };
 
+  const freedomLevelRates = selectedBank?.config?.levels;
   const FREEDOM_LEVELS: { key: FreedomLevel; label: string; desc: string }[] = [
-    { key: 'standard', label: 'Standard', desc: '1% + 0.5% NFC' },
-    { key: 'silver', label: 'Silver', desc: '2% + 1% NFC' },
-    { key: 'gold', label: 'Gold', desc: '3% + 1.5% NFC' },
-    { key: 'platinum', label: 'Platinum', desc: '4% + 2% NFC' },
+    { key: 'standard', label: 'Standard', desc: freedomLevelRates?.standard ? `${freedomLevelRates.standard.base}% + ${freedomLevelRates.standard.nfc}% NFC` : '' },
+    { key: 'silver', label: 'Silver', desc: freedomLevelRates?.silver ? `${freedomLevelRates.silver.base}% + ${freedomLevelRates.silver.nfc}% NFC` : '' },
+    { key: 'gold', label: 'Gold', desc: freedomLevelRates?.gold ? `${freedomLevelRates.gold.base}% + ${freedomLevelRates.gold.nfc}% NFC` : '' },
+    { key: 'platinum', label: 'Platinum', desc: freedomLevelRates?.platinum ? `${freedomLevelRates.platinum.base}% + ${freedomLevelRates.platinum.nfc}% NFC` : '' },
   ];
 
+  const berekeTierRates = selectedBank?.config?.tiers;
   const BEREKE_TIERS: { key: BerekeTier; label: string; desc: string }[] = [
-    { key: 'zero', label: 'Без депозита', desc: '0%' },
-    { key: 'basic', label: 'Базовый', desc: '1%' },
-    { key: 'medium', label: 'Средний', desc: '3%' },
-    { key: 'high', label: 'Высокий', desc: '5%' },
-    { key: 'max', label: 'Максимальный', desc: '7%' },
+    { key: 'zero', label: 'Без депозита', desc: berekeTierRates?.zero != null ? `${berekeTierRates.zero}%` : '' },
+    { key: 'basic', label: 'Базовый', desc: berekeTierRates?.basic != null ? `${berekeTierRates.basic}%` : '' },
+    { key: 'medium', label: 'Средний', desc: berekeTierRates?.medium != null ? `${berekeTierRates.medium}%` : '' },
+    { key: 'high', label: 'Высокий', desc: berekeTierRates?.high != null ? `${berekeTierRates.high}%` : '' },
+    { key: 'max', label: 'Максимальный', desc: berekeTierRates?.max != null ? `${berekeTierRates.max}%` : '' },
   ];
 
   // Step 1: Choose bank

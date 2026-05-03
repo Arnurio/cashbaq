@@ -1,5 +1,5 @@
 import React, { Component, useEffect, useState } from 'react';
-import { LogBox } from 'react-native';
+import { LogBox, View, Text, StyleSheet } from 'react-native';
 import { Stack, useRouter, useSegments } from 'expo-router';
 import { SplashScreen } from 'expo-router';
 import {
@@ -12,9 +12,7 @@ import {
 } from '@expo-google-fonts/manrope';
 import { ToastProvider } from '../lib/Toast';
 import { getOnboarded } from '../lib/storage';
-import { onAuthStateChange } from '../lib/auth';
 import { registerForPushNotifications } from '../lib/notifications';
-import type { Session } from '@supabase/supabase-js';
 
 // Suppress known native-module warnings in production
 LogBox.ignoreLogs([
@@ -50,14 +48,16 @@ class ErrorBoundary extends Component<
   }
 
   componentDidCatch(error: Error) {
-    // Log but don't crash – prevents red error banners
     console.warn('ErrorBoundary caught:', error.message);
   }
 
   render() {
     if (this.state.hasError) {
-      // Silently recover — re-render children on next state change
-      return this.props.children;
+      return (
+        <View style={errorStyles.container}>
+          <Text style={errorStyles.text}>Что-то пошло не так. Перезапустите приложение.</Text>
+        </View>
+      );
     }
     return this.props.children;
   }
@@ -72,15 +72,8 @@ export default function RootLayout() {
     Manrope_800ExtraBold,
   });
   const [ready, setReady] = useState(false);
-  const [session, setSession] = useState<Session | null | undefined>(undefined);
   const router = useRouter();
   const segments = useSegments();
-
-  // Track auth state
-  useEffect(() => {
-    const sub = onAuthStateChange((s) => setSession(s));
-    return () => sub.unsubscribe();
-  }, []);
 
   // Register push notifications (silent — no crash if denied)
   useEffect(() => {
@@ -88,26 +81,23 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (!fontsLoaded || session === undefined) return;
+    if (!fontsLoaded) return;
 
     getOnboarded().then((onboarded) => {
       const inOnboarding = segments[0] === 'onboarding';
-      const inLogin = segments[0] === 'login';
 
       if (!onboarded && !inOnboarding) {
         router.replace('/onboarding');
       } else if (onboarded && inOnboarding) {
         router.replace('/(tabs)');
-      } else if (onboarded && !session && !inLogin) {
-        // Auth enabled: redirect to login if not authenticated
-        // Comment out next line to keep MVP "no auth" mode:
-        // router.replace('/login');
       }
 
       setReady(true);
       SplashScreen.hideAsync().catch(() => {});
     });
-  }, [fontsLoaded, session, segments]);
+    // segments intentionally excluded: re-running on every navigation causes redirect loops
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [fontsLoaded]);
 
   if (!ready) {
     return null;
@@ -123,7 +113,6 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
-        <Stack.Screen name="login" options={{ gestureEnabled: false, headerShown: false }} />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
           name="find"
@@ -160,3 +149,18 @@ export default function RootLayout() {
     </ErrorBoundary>
   );
 }
+
+const errorStyles = StyleSheet.create({
+  container: {
+    flex: 1,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: '#F6F8FA',
+    padding: 32,
+  },
+  text: {
+    fontSize: 16,
+    color: '#6B7280',
+    textAlign: 'center',
+  },
+});
