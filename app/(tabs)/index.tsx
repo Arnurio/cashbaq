@@ -1,4 +1,4 @@
-import { useCallback, useState } from 'react';
+import { useCallback, useState, useMemo } from 'react';
 import {
   View,
   Text,
@@ -29,9 +29,9 @@ export default function HomeScreen() {
     }, [])
   );
 
-  const bankMap = new Map(banks.map((b) => [b.id, b]));
+  const bankMap = useMemo(() => new Map(banks.map((b) => [b.id, b])), [banks]);
 
-  const maxRate = cards.reduce((max, card) => {
+  const maxRate = useMemo(() => cards.reduce((max, card) => {
     const bank = bankMap.get(card.bankId);
     if (!bank) return max;
     for (const cat of CATEGORIES) {
@@ -39,26 +39,25 @@ export default function HomeScreen() {
       if (rate > max) max = rate;
     }
     return max;
-  }, 0);
+  }, 0), [cards, bankMap]);
 
-  const totalLimit = cards.reduce((sum, card) => {
+  const totalLimit = useMemo(() => cards.reduce((sum, card) => {
     const bank = bankMap.get(card.bankId);
     return sum + (bank?.limits.monthly ?? 0);
-  }, 0);
+  }, 0), [cards, bankMap]);
 
-  // Top 2 category rates for hero badges
-  const topCatRates = CATEGORIES.map((cat) => {
+  const topCatRates = useMemo(() => CATEGORIES.map((cat) => {
     const best = getBestCard(cards, banks, cat.id);
     return { emoji: cat.emoji, rate: best?.rate ?? 0 };
   })
     .filter((c) => c.rate > 0)
     .sort((a, b) => b.rate - a.rate)
-    .slice(0, 3);
+    .slice(0, 3), [cards, banks]);
 
-  const selectableBanks = cards.filter((c) => {
+  const selectableBanks = useMemo(() => cards.filter((c) => {
     const bank = bankMap.get(c.bankId);
     return bank?.type === 'selectable' && c.selectedCategories.length === 0;
-  });
+  }), [cards, bankMap]);
 
   if (loading && banks.length === 0) {
     return (

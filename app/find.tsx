@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useMemo } from 'react';
 import {
   View,
   Text,
@@ -28,37 +28,32 @@ export default function FindScreen() {
     }, [])
   );
 
-  const bankMap = new Map(banks.map((b) => [b.id, b]));
+  const bankMap = useMemo(() => new Map(banks.map((b) => [b.id, b])), [banks]);
+
+  const catBestRates = useMemo(
+    () => new Map(CATEGORIES.map((cat) => [cat.id, getBestCard(cards, banks, cat.id)])),
+    [cards, banks]
+  );
+
   const selectedCategory = CATEGORIES.find((c) => c.id === selectedCat);
-  const bestCard = selectedCat ? getBestCard(cards, banks, selectedCat) : null;
-  const promo = selectedCat
-    ? promos.find((p) => p.category === selectedCat)
-    : null;
+  const bestCard = selectedCat ? (catBestRates.get(selectedCat) ?? null) : null;
+  const promo = selectedCat ? promos.find((p) => p.category === selectedCat) : null;
 
-  const otherCards = selectedCat
-    ? cards
-        .map((card) => {
-          const bank = bankMap.get(card.bankId);
-          if (!bank) return null;
-          const rate = getCardRate(card, bank, selectedCat);
-          return { card, bank, rate };
-        })
-        .filter(
-          (r): r is NonNullable<typeof r> =>
-            r !== null && r.card.id !== bestCard?.card.id && r.rate > 0
-        )
-        .sort((a, b) => b.rate - a.rate)
-    : [];
-
-  const promoCards = selectedCat
-    ? cards
-        .map((card) => {
-          const bank = bankMap.get(card.bankId);
-          if (!bank || bank.type !== 'promo') return null;
-          return { card, bank };
-        })
-        .filter((r): r is NonNullable<typeof r> => r !== null)
-    : [];
+  const otherCards = useMemo(() => {
+    if (!selectedCat) return [];
+    return cards
+      .map((card) => {
+        const bank = bankMap.get(card.bankId);
+        if (!bank) return null;
+        const rate = getCardRate(card, bank, selectedCat);
+        return { card, bank, rate };
+      })
+      .filter(
+        (r): r is NonNullable<typeof r> =>
+          r !== null && r.card.id !== bestCard?.card.id && r.rate > 0
+      )
+      .sort((a, b) => b.rate - a.rate);
+  }, [cards, bankMap, selectedCat, bestCard]);
 
   if (loading && banks.length === 0) {
     return (
@@ -72,7 +67,7 @@ export default function FindScreen() {
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Category List */}
       {CATEGORIES.map((cat, index) => {
-        const userBest = getBestCard(cards, banks, cat.id);
+        const userBest = catBestRates.get(cat.id) ?? null;
         const isSelected = selectedCat === cat.id;
         const catColor = cat.color;
 
@@ -90,7 +85,7 @@ export default function FindScreen() {
                 const next = isSelected ? null : cat.id;
                 setSelectedCat(next);
                 if (next) {
-                  const best = getBestCard(cards, banks, next);
+                  const best = catBestRates.get(next) ?? null;
                   trackEvent('category_selected', { category: next });
                   if (best) {
                     trackEvent('best_card_shown', {
@@ -184,20 +179,6 @@ export default function FindScreen() {
             </View>
           )}
 
-          {/* Promo-only Cards (e.g. Kaspi) */}
-          {promoCards.length > 0 && (
-            <View style={styles.otherSection}>
-              {promoCards.map(({ card, bank }) => (
-                <View key={card.id} style={[styles.otherRow, CARD_SHADOW]}>
-                  <View
-                    style={[styles.otherDot, { backgroundColor: bank.color }]}
-                  />
-                  <Text style={styles.otherName}>{bank.card}</Text>
-                  <Text style={styles.promoOnlyBadge}>Только акции</Text>
-                </View>
-              ))}
-            </View>
-          )}
         </View>
       )}
     </ScrollView>
@@ -388,15 +369,5 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope_700Bold',
     fontSize: 16,
     color: '#374151',
-  },
-  promoOnlyBadge: {
-    fontFamily: 'Manrope_600SemiBold',
-    fontSize: 12,
-    color: '#E53935',
-    backgroundColor: '#FFEBEE',
-    paddingHorizontal: 8,
-    paddingVertical: 3,
-    borderRadius: 8,
-    overflow: 'hidden',
   },
 });

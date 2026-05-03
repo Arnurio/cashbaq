@@ -12,9 +12,7 @@ import {
 } from '@expo-google-fonts/manrope';
 import { ToastProvider } from '../lib/Toast';
 import { getOnboarded } from '../lib/storage';
-import { onAuthStateChange } from '../lib/auth';
 import { registerForPushNotifications } from '../lib/notifications';
-import type { Session } from '@supabase/supabase-js';
 
 // Suppress known native-module warnings in production
 LogBox.ignoreLogs([
@@ -74,15 +72,8 @@ export default function RootLayout() {
     Manrope_800ExtraBold,
   });
   const [ready, setReady] = useState(false);
-  const [session, setSession] = useState<Session | null | undefined>(undefined);
   const router = useRouter();
   const segments = useSegments();
-
-  // Track auth state
-  useEffect(() => {
-    const sub = onAuthStateChange((s) => setSession(s));
-    return () => sub.unsubscribe();
-  }, []);
 
   // Register push notifications (silent — no crash if denied)
   useEffect(() => {
@@ -90,20 +81,15 @@ export default function RootLayout() {
   }, []);
 
   useEffect(() => {
-    if (!fontsLoaded || session === undefined) return;
+    if (!fontsLoaded) return;
 
     getOnboarded().then((onboarded) => {
       const inOnboarding = segments[0] === 'onboarding';
-      const inLogin = segments[0] === 'login';
 
       if (!onboarded && !inOnboarding) {
         router.replace('/onboarding');
       } else if (onboarded && inOnboarding) {
         router.replace('/(tabs)');
-      } else if (onboarded && !session && !inLogin) {
-        // Auth enabled: redirect to login if not authenticated
-        // Comment out next line to keep MVP "no auth" mode:
-        // router.replace('/login');
       }
 
       setReady(true);
@@ -111,7 +97,7 @@ export default function RootLayout() {
     });
     // segments intentionally excluded: re-running on every navigation causes redirect loops
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [fontsLoaded, session]);
+  }, [fontsLoaded]);
 
   if (!ready) {
     return null;
@@ -127,7 +113,6 @@ export default function RootLayout() {
         }}
       >
         <Stack.Screen name="onboarding" options={{ gestureEnabled: false }} />
-        <Stack.Screen name="login" options={{ gestureEnabled: false, headerShown: false }} />
         <Stack.Screen name="(tabs)" />
         <Stack.Screen
           name="find"
