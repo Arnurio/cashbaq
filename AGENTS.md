@@ -31,9 +31,9 @@
 
 | Агент | Ветка | Задача | Файлы | Статус |
 |-------|-------|--------|-------|--------|
-| Агент-1 | `feature/agent1` | _(назначит дирижёр)_ | — | 🔴 |
-| Агент-2 | `feature/agent2` | _(назначит дирижёр)_ | — | 🔴 |
-| Агент-3 | `feature/agent3` | _(назначит дирижёр)_ | — | 🔴 |
+| Агент-1 | `feature/supabase-auth` | Supabase Auth (Google + email) — Phase 2 | `lib/supabase.ts`, `app/_layout.tsx`, новый `app/login.tsx` | 🔴 |
+| Агент-2 | `feature/freedom-rates` | Добавить ставки Freedom в admin + пустое состояние в UI | `app/card-detail.tsx`, `app/(tabs)/index.tsx` | 🔴 |
+| Агент-3 | `feature/landing-vercel` | Лендинг в `landing/` — деплой на Vercel | `landing/` | 🔴 |
 
 ---
 
@@ -145,12 +145,14 @@ git merge feature/agent2  # принять работу агента-2
 
 ## СТАТУС ТЕКУЩЕГО СПРИНТА
 
-**Цель спринта:** _(заполняет дирижёр)_
+**Цель спринта:** Phase 2 — Запуск (Auth + Лендинг + App Store)
 
-**Начат:** —
+**Начат:** 2026-05-05
 **Ожидаемое завершение:** —
 
 ### Лог событий
 ```
-[дата] [агент]: [что сделано]
+2026-05-05 Claude: migration drift fix (004_verification_metadata.sql)
+2026-05-05 Claude: verification badge в mobile UI (✓/AI в card-detail.tsx)
+2026-05-05 Claude: HANDOFF.md обновлён, 001_init.sql исправлен, Jules шаблон создан
 ```

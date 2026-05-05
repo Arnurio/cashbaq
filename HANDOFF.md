@@ -5,66 +5,81 @@
 
 ---
 
-## Текущее состояние проекта (последнее обновление: 2026-04-26)
+## Текущее состояние проекта (последнее обновление: 2026-05-05)
 
 **Cashbaq** — кэшбэк-оптимизатор для банков Казахстана (Expo + Supabase).
-Проект НЕ запущен. Цель: реальная база ставок → запуск → органический рост.
+Проект НЕ запущен. Главный блокер: владелец не занёс реальные ставки в БД.
 
 ---
 
-## Что сделано в последней сессии
+## Что сделано (полный список)
 
-### Open PR: [#2](https://github.com/Arnurio/cashbaq/pull/2) — Phase 1.1 + 1.2
+### Инфраструктура и данные
+- ✅ Supabase: 7 таблиц (`banks`, `bank_rates`, `promos`, `tips`, `tip_items`, `user_cards`, `rate_reports`)
+- ✅ Миграции: `001_init`, `001_add_rate_metadata`, `002_rate_reports`, `003_analytics_events`, `004_verification_metadata`
+- ✅ `bank_rates` имеет: `rate`, `updated_at`, `source_url`, `verified_by`, `verified_at`, `verified_note`
+- ✅ `banks` имеет: `is_active` — Kaspi/Halyk/Freedom активны, Forte/BCC/Bereke/Alatau City скрыты
+- ✅ `banks.type` CHECK constraint включает `'promo'` (Kaspi = promo-тип)
 
-**Phase 1, задача №1 — `updated_at` + `source_url` в `bank_rates`:**
-- Миграция `supabase/migrations/001_add_rate_metadata.sql` применена к Supabase (cdtnvqlxsbwcdiapbdkh)
-- Триггер автоматически обновляет `updated_at` при каждом UPDATE
-- Mobile UI ([app/card-detail.tsx](app/card-detail.tsx)) показывает «Обновлено N дн. назад» + иконка-ссылка на источник
-- Admin ([admin/src/pages/Rates.tsx](admin/src/pages/Rates.tsx)) — цветовая индикация свежести (🟢🟡🔴) + поле для source_url
-- Тип `RateMeta` в [lib/types.ts](lib/types.ts), `Bank.rateMeta?` опционально
+### Mobile app
+- ✅ Все 3 таба: главная (рекомендации), карты, советы
+- ✅ Модалы: find.tsx, add-card.tsx, card-detail.tsx
+- ✅ Онбординг
+- ✅ Кнопка «Сообщить о неточности» + `ReportInaccuracyModal`
+- ✅ Бейдж верификации: зелёный **✓** для `user`/`bank_site`, янтарный **AI** для `ai_estimate`
+- ✅ Дата обновления ставок («Обновлено N дней назад»)
+- ✅ Ссылка на источник ставки (иконка ExternalLink)
+- ✅ Kaspi модель = `promo`: возвращает 0 по всем категориям, промо-акции идут через `promos`
 
-**Phase 1, задача №2 — кнопка «Сообщить о неточности»:**
-- Миграция `supabase/migrations/002_rate_reports.sql` применена к Supabase
-- Mobile: `components/ReportInaccuracyModal.tsx` (bottom-sheet, Android-friendly) + кнопка в card-detail
-- Admin: новая страница `/reports` — фильтры (Новые/Решено/Отклонено) + actions (resolve/reject/delete)
+### Admin panel (`admin/`)
+- ✅ Banks, Rates, Categories, Promos, Tips, Reports — полный CRUD
+- ✅ Rates: бейдж ✓/⚠AI per ячейка, автоматически `verified_by='user'` при сохранении
+- ✅ Analytics dashboard
 
-**Тесты:**
-- 12 новых тестов в `lib/__tests__/api.test.ts` для rateMeta parsing
-- **Полный suite: 59/59 ✅**, tsc чисто
-
-**Research:**
-- `docs/RATE_RESEARCH_2026-04-26.md` — изучены публичные страницы Kaspi/Halyk/Forte
-- ⚠️ **Главное**: per-category грид нельзя получить из веба → нужен ручной апдейт раз в месяц из app каждого банка
-- ⚠️ **Kaspi Gold не подходит под `fixed`** — у него только промо-акции (флаг для пересмотра модели данных)
-
----
-
-## Что НЕ сделано (3 открытых решения для пользователя)
-
-После merge PR #2 нужно выбрать одно:
-
-### (A) Аудит реальных ставок через админку
-Запустить `cd admin && npm install && npm run dev` → http://localhost:5173/rates
-Открыть сайт/app каждого банка → сверить ставки → сохранить с `source_url`.
-**Это разблокирует запуск.**
-
-### (B) Пересмотр модели Kaspi (fixed → promo-based)
-Kaspi Gold не имеет фиксированных категорий — только промо. Сейчас введём юзеров в заблуждение.
-Варианты в `docs/RATE_RESEARCH_2026-04-26.md`.
-
-### (C) Phase 2 — запуск
-- Supabase Auth (Google + email)
-- Push Notifications (Expo)
-- Лендинг на Vercel
-- App Store + Google Play submission
-- Аналитика
+### Качество
+- ✅ **59/59 тестов**, TypeScript чист
+- ✅ `lib/__tests__/fixtures/testBanks.ts` — все 7 банков для тестов cashback-движка
 
 ---
 
-## Команда параллельных агентов (уже настроена)
+## Состояние базы данных (прямо сейчас)
 
-См. [AGENTS.md](AGENTS.md) — структура работы нескольких агентов через git worktrees.
-Каждый агент берёт свою зону файлов, дирижёр (главный аккаунт) сводит через merge.
+| Банк | is_active | Ставок в bank_rates | verified_by |
+|------|-----------|---------------------|-------------|
+| Kaspi | ✅ true | 0 (promo-тип, не нужны) | — |
+| Halyk | ✅ true | 9 (все категории) | ai_estimate ⚠️ |
+| Freedom | ✅ true | 0 ← **ПУСТО** | — |
+| Forte | ❌ false | 2 (скрыты) | ai_estimate |
+| BCC | ❌ false | 2 (скрыты) | ai_estimate |
+| Bereke | ❌ false | 0 | — |
+| Alatau City (Jusan) | ❌ false | 9 (скрыты) | ai_estimate |
+
+---
+
+## Главный блокер → следующий шаг (для ВЛАДЕЛЬЦА, не агента)
+
+**Freedom не имеет ни одной ставки.** Halyk имеет 9 ставок — все `ai_estimate` и некоторые явно неточны (rate=1.00 для всех категорий).
+
+Нужно: открыть приложение Freedom и Halyk на телефоне → занести реальные ставки через `cd admin && npm run dev` → http://localhost:5173/rates. После сохранения ставки автоматически получат `verified_by='user'` и зелёный ✓ в мобилке.
+
+---
+
+## Открытые задачи для агентов
+
+### (A) Phase 2 — Запуск
+- [ ] Supabase Auth (Google + email)
+- [ ] Push Notifications (Expo)
+- [ ] Лендинг на Vercel (`landing/` папка уже есть)
+- [ ] App Store + Google Play submission
+- [ ] Аналитика событий
+
+### (B) Расширение банков
+Для каждого неактивного банка: получить реальные ставки от владельца → занести через admin → `UPDATE banks SET is_active=true WHERE id='forte'`
+
+### (C) Улучшения UX
+- Экран «Сравнение карт» для одной категории
+- Фильтр на главном экране по банку
+- Пустое состояние для Freedom (0 ставок сейчас)
 
 ---
 
@@ -74,7 +89,7 @@ Kaspi Gold не имеет фиксированных категорий — т�
 Mobile:    Expo SDK 54 + React Native 0.81 + TypeScript + expo-router v6
 Admin:     Vite 8 + React 19 + TailwindCSS v4 (отдельный package.json в admin/)
 Backend:   Supabase (URL: https://cdtnvqlxsbwcdiapbdkh.supabase.co)
-Tests:     Jest + jest-expo (npx jest)
+Tests:     Jest + jest-expo (npx jest) — 59/59
 Repo:      https://github.com/Arnurio/cashbaq (branch: main)
 ```
 
@@ -84,19 +99,22 @@ Repo:      https://github.com/Arnurio/cashbaq (branch: main)
 
 ```bash
 # 1. Подтянуть последнее
-git pull origin main  # после merge PR #2
+git pull origin main
 
 # 2. Проверить статус
 git status
 git log --oneline -10
 
-# 3. Если нужны тесты
+# 3. Тесты
 npx jest
 
-# 4. Запустить админку для аудита (Вариант A)
+# 4. TypeScript
+npx tsc --noEmit
+
+# 5. Запустить админку для аудита ставок
 cd admin && npm run dev
 
-# 5. Запустить мобильное
+# 6. Запустить мобильное
 npx expo start --web
 ```
 
@@ -104,13 +122,22 @@ npx expo start --web
 
 ## Подсказка для нового чата
 
-Начни новый чат сообщением:
 ```
-Прочитай HANDOFF.md и CLAUDE.md. Я выбираю вариант [A/B/C] из секции
-"Что НЕ сделано". Продолжаем оттуда.
+Прочитай HANDOFF.md и CLAUDE.md. Я хочу сделать [задача из секции "Открытые задачи"].
 ```
 
-Это сэкономит токены — агент войдёт в контекст за 1 чтение вместо длинной переписки.
+---
+
+## Иерархия верификации ставок
+
+| Уровень | verified_by | UX-маркер в мобилке |
+|---------|-------------|---------------------|
+| 🟢 A | `user` | зелёный ✓ |
+| 🟡 B | `community` | зелёный ✓ |
+| 🟠 C | `bank_site` | зелёный ✓ + ссылка |
+| 🔴 D | `ai_estimate` | янтарный AI |
+
+Ставка показывается пользователю при любом `verified_by`, но AI-ставки помечены визуально.
 
 ---
 
@@ -125,35 +152,14 @@ npx expo start --web
 ✅ «Проверь `app/card-detail.tsx` на потенциальные null-ошибки»
 
 ### 3. Используй `/compact` когда контекст разрос
-Команда `/compact` сжимает историю чата, оставляя ключевые факты. Делает один раз стоит ~5k токенов, экономит десятки тысяч.
+Команда `/compact` сжимает историю чата, оставляя ключевые факты.
 
 ### 4. Делегируй ресёрч субагентам
-Большие задачи поиска делегируй командой:
 ```
 Используй subagent Explore чтобы найти ...
 Используй subagent general-purpose чтобы исследовать ...
 ```
-Результат субагента приходит сжатым — главный контекст не засоряется.
 
 ### 5. Один файл за раз при больших правках
-Параллельные правки в нескольких файлах требуют чтения всех — много токенов.
-Лучше: один файл → коммит → следующий.
 
 ### 6. Закрывай задачу одним PR
-Не оставляй полу-сделанные ветки — каждая ветка требует загрузки контекста при возвращении.
-
-### 7. Settings allowlist (уже настроено в `.claude/settings.json`)
-Безопасные команды (git, jest, tsc, gh) теперь не спрашивают подтверждения → меньше токенов на permission-prompts.
-
----
-
-## 🔗 Полезные ресурсы Anthropic (open source)
-
-| Репозиторий | Зачем |
-|-------------|-------|
-| [anthropics/claude-code](https://github.com/anthropics/claude-code) | Главный репо. Issues, examples settings.json, hooks, slash-commands |
-| [anthropics/anthropic-cookbook](https://github.com/anthropics/anthropic-cookbook) | Паттерны промптов и API tool use |
-| [anthropics/courses](https://github.com/anthropics/courses) | Бесплатные курсы по Claude и prompt engineering |
-| [anthropics/claude-code-action](https://github.com/anthropics/claude-code-action) | GitHub Action для автоматизации Claude Code в CI |
-| [anthropics/claude-cookbooks](https://github.com/anthropics/claude-cookbooks) | Гайды по построению агентов |
-| [docs.anthropic.com/claude-code](https://docs.anthropic.com/en/docs/claude-code/overview) | Официальная документация (slash commands, MCP, hooks) |

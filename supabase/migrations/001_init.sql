@@ -11,7 +11,7 @@ CREATE TABLE banks (
   gradient_start TEXT NOT NULL,
   gradient_end TEXT NOT NULL,
   bg_color TEXT NOT NULL,
-  type TEXT NOT NULL CHECK (type IN ('fixed', 'selectable', 'leveled', 'subscription')),
+  type TEXT NOT NULL CHECK (type IN ('fixed', 'selectable', 'leveled', 'subscription', 'promo')),
   description TEXT,
   note TEXT,
   url TEXT,
