@@ -1,6 +1,6 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
-import { Bank, Category, Promo, Tip } from './types';
+import { Bank, Category, Promo, RateMeta, Tip } from './types';
 import { CATEGORIES as FALLBACK_CATEGORIES } from './constants';
 
 const CACHE_KEYS = {
@@ -51,7 +51,7 @@ export async function fetchBanks(): Promise<Bank[]> {
 
   // Group rates and metadata by bank_id
   const ratesByBank = new Map<string, Record<string, number>>();
-  const metaByBank = new Map<string, Record<string, { updatedAt: string; sourceUrl?: string }>>();
+  const metaByBank = new Map<string, Record<string, RateMeta>>();
   for (const r of ratesRaw) {
     if (!ratesByBank.has(r.bank_id)) ratesByBank.set(r.bank_id, {});
     if (!metaByBank.has(r.bank_id)) metaByBank.set(r.bank_id, {});
@@ -59,6 +59,8 @@ export async function fetchBanks(): Promise<Bank[]> {
     metaByBank.get(r.bank_id)![r.category_id] = {
       updatedAt: r.updated_at ?? new Date().toISOString(),
       sourceUrl: r.source_url ?? undefined,
+      verifiedBy: r.verified_by ?? 'ai_estimate',
+      verifiedAt: r.verified_at ?? undefined,
     };
   }
 

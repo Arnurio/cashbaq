@@ -1,0 +1,86 @@
+name: Jules Task
+description: Задача для Google Jules AI-агента
+labels: ["jules"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        ## Контекст проекта (Jules читает это автоматически)
+        **Cashbaq** — кэшбэк-оптимизатор для банков Казахстана.
+        Стек: **Expo SDK 54 + React Native 0.81 + TypeScript + Supabase + Vite admin**.
+        Прочитай `CLAUDE.md` и `HANDOFF.md` для полного контекста.
+
+        ### Критические правила (ОБЯЗАТЕЛЬНО соблюдать):
+        - ❌ НЕ обновлять Expo SDK
+        - ❌ НЕ использовать `AsyncStorage` напрямую — только через `lib/storage.ts`
+        - ❌ НЕ импортировать `lucide-react` в мобилку — только `lucide-react-native`
+        - ❌ НЕ импортировать mobile-компоненты в `admin/` и наоборот
+        - ❌ НЕ деплоить `admin/` — только локально
+        - ✅ `admin/` — отдельный `package.json`, запускается через `cd admin && npm run dev`
+        - ✅ Интерфейс на **русском** языке
+        - ✅ После изменений: `npx jest && npx tsc --noEmit` — оба должны пройти
+
+  - type: textarea
+    id: task
+    attributes:
+      label: Задача
+      description: Что конкретно нужно сделать?
+      placeholder: |
+        Например: Добавить поле X в форму Y на странице admin/src/pages/Z.tsx
+    validations:
+      required: true
+
+  - type: textarea
+    id: files-to-change
+    attributes:
+      label: Файлы для изменения
+      description: Перечисли файлы которые нужно трогать
+      placeholder: |
+        - lib/types.ts — добавить тип X
+        - app/card-detail.tsx — показать поле X в UI
+    validations:
+      required: true
+
+  - type: textarea
+    id: files-do-not-touch
+    attributes:
+      label: Файлы НЕ трогать
+      description: Файлы вне зоны задачи
+      value: |
+        - lib/supabase.ts (SafeStorage обёртка — критична)
+        - app/_layout.tsx (Root layout — ломает всё если сломать)
+        - lib/useData.ts (если не часть задачи)
+
+  - type: textarea
+    id: expected-result
+    attributes:
+      label: Ожидаемый результат
+      description: Что должно работать по-другому?
+      placeholder: |
+        После изменения пользователь видит X на экране Y.
+    validations:
+      required: true
+
+  - type: dropdown
+    id: zone
+    attributes:
+      label: Зона ответственности
+      description: Какую зону затрагивает задача?
+      options:
+        - "Данные / API (lib/api.ts, lib/types.ts, lib/cashback.ts)"
+        - "Мобильные экраны (app/)"
+        - "Инфраструктура (lib/supabase.ts, lib/storage.ts, lib/useData.ts)"
+        - "Admin panel (admin/src/)"
+        - "База данных / миграции (supabase/migrations/)"
+        - "Несколько зон"
+    validations:
+      required: true
+
+  - type: textarea
+    id: verification
+    attributes:
+      label: Проверка
+      value: |
+        - [ ] `npx jest` — все тесты зелёные (сейчас 59/59)
+        - [ ] `npx tsc --noEmit` — TypeScript чист
+        - [ ] Нет изменений в файлах вне зоны задачи (`git diff main --stat`)
