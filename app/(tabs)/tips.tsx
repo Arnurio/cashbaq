@@ -9,7 +9,7 @@ import {
   Animated as RNAnimated,
 } from 'react-native';
 import { useFocusEffect, useRouter } from 'expo-router';
-import { ExternalLink } from 'lucide-react-native';
+import { ExternalLink, Lightbulb } from 'lucide-react-native';
 import { getCards, clearAll } from '../../lib/storage';
 import { useData } from '../../lib/useData';
 import { BRAND_COLOR, BG_COLOR } from '../../lib/constants';
@@ -128,6 +128,24 @@ export default function TipsScreen() {
           </Text>
         </PressableScale>
       </RNAnimated.View>
+
+      {filteredTips.length === 0 && (
+        <View style={styles.emptyCard}>
+          <View style={styles.emptyIconWrap}>
+            <Lightbulb size={28} color={BRAND_COLOR} />
+          </View>
+          <Text style={styles.emptyTitle}>
+            {filter === 'mine' && cards.length === 0
+              ? 'Сначала добавьте карты'
+              : 'Советов пока нет'}
+          </Text>
+          <Text style={styles.emptySub}>
+            {filter === 'mine' && cards.length === 0
+              ? 'В этом фильтре будут советы по вашим картам'
+              : 'Загляните позже — мы добавим новые подборки'}
+          </Text>
+        </View>
+      )}
 
       {filteredTips.map((tip, index) => {
         const isExpanded = expanded.has(tip.id);
@@ -366,6 +384,40 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope_600SemiBold',
     fontSize: 13,
     color: BRAND_COLOR,
+  },
+  // Empty
+  emptyCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 28,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginBottom: 12,
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    borderStyle: 'dashed',
+  },
+  emptyIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#E8F5F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  emptyTitle: {
+    fontFamily: 'Manrope_700Bold',
+    fontSize: 16,
+    color: '#111827',
+    marginBottom: 6,
+  },
+  emptySub: {
+    fontFamily: 'Manrope_500Medium',
+    fontSize: 13,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 19,
   },
   // Reset
   resetBtn: {
