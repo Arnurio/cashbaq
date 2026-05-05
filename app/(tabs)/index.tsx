@@ -117,8 +117,16 @@ export default function HomeScreen() {
             style={styles.emptyCard}
             onPress={() => router.push('/add-card')}
           >
-            <CreditCard size={32} color="#9CA3AF" />
-            <Text style={styles.emptyText}>Добавьте первую карту</Text>
+            <View style={styles.emptyIconWrap}>
+              <CreditCard size={28} color={BRAND_COLOR} />
+            </View>
+            <Text style={styles.emptyTitle}>Добавьте первую карту</Text>
+            <Text style={styles.emptySub}>
+              И мы подскажем, какой выгоднее платить
+            </Text>
+            <View style={styles.emptyCta}>
+              <Text style={styles.emptyCtaText}>+ Добавить карту</Text>
+            </View>
           </PressableScale>
         </Animated.View>
       ) : (
@@ -357,17 +365,45 @@ const styles = StyleSheet.create({
   emptyCard: {
     backgroundColor: '#FFFFFF',
     borderRadius: 16,
-    padding: 32,
+    paddingVertical: 32,
+    paddingHorizontal: 24,
     alignItems: 'center',
-    gap: 12,
     borderWidth: 1.5,
     borderColor: '#E5E7EB',
     borderStyle: 'dashed',
   },
-  emptyText: {
+  emptyIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#E8F5F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  emptyTitle: {
+    fontFamily: 'Manrope_700Bold',
+    fontSize: 16,
+    color: '#111827',
+    marginBottom: 6,
+  },
+  emptySub: {
     fontFamily: 'Manrope_500Medium',
-    fontSize: 15,
-    color: '#9CA3AF',
+    fontSize: 13,
+    color: '#6B7280',
+    textAlign: 'center',
+    marginBottom: 16,
+  },
+  emptyCta: {
+    backgroundColor: BRAND_COLOR,
+    borderRadius: 10,
+    paddingHorizontal: 18,
+    paddingVertical: 10,
+  },
+  emptyCtaText: {
+    fontFamily: 'Manrope_700Bold',
+    fontSize: 14,
+    color: '#FFFFFF',
   },
   // Metrics
   metrics: {
