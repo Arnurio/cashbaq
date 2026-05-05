@@ -3,10 +3,43 @@
 @theme {
   --font-sans: 'Inter', system-ui, sans-serif;
   --color-brand: #0D7C5F;
+  --color-brand-hover: #0a6b50;
   --color-brand-light: #E6F5F0;
+  --color-brand-lighter: #f0faf6;
+  --color-sidebar-bg: #0f1117;
+  --color-sidebar-hover: #1e2230;
+  --color-sidebar-active: #1a3a2e;
+  --color-sidebar-border: #1e2230;
+}
+
+@font-face {
+  font-family: 'Inter';
+  font-style: normal;
+  font-weight: 100 900;
+  src: local('Inter');
+}
+
+* {
+  box-sizing: border-box;
 }
 
 body {
   margin: 0;
   font-family: 'Inter', system-ui, sans-serif;
+  -webkit-font-smoothing: antialiased;
+}
+
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #d1d5db;
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #9ca3af;
 }

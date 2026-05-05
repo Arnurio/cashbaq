@@ -11,13 +11,13 @@ import { LinearGradient } from 'expo-linear-gradient';
 import { Plus, Plane, Shield } from 'lucide-react-native';
 import { getCards } from '../../lib/storage';
 import { useData } from '../../lib/useData';
-import { CATEGORIES, BRAND_COLOR, BG_COLOR } from '../../lib/constants';
+import { BRAND_COLOR, BG_COLOR } from '../../lib/constants';
 import { UserCard } from '../../lib/types';
 import { useStaggerAnim, fadeStyle, PressableScale, CARD_SHADOW } from '../../lib/animations';
 
 export default function CardsScreen() {
   const [cards, setCards] = useState<UserCard[]>([]);
-  const { banks, loading } = useData();
+  const { banks, categories, loading } = useData();
   const router = useRouter();
   const anims = useStaggerAnim(20);
 
@@ -71,7 +71,7 @@ export default function CardsScreen() {
         if (!bank) return null;
 
         const selectedCatNames = card.selectedCategories
-          .map((id) => CATEGORIES.find((c) => c.id === id))
+          .map((id) => categories.find((c) => c.id === id))
           .filter(Boolean)
           .map((c) => c!.emoji + ' ' + c!.name);
 

@@ -1,18 +1,16 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Bank, Promo, Tip } from './types';
+import { useState, useEffect } from 'react';
+import { Bank, Category, Promo, Tip } from './types';
 import {
-  fetchBanks,
-  fetchPromos,
-  fetchTips,
-  getCachedBanks,
-  getCachedPromos,
-  getCachedTips,
+  fetchBanks, fetchPromos, fetchTips, fetchCategories,
+  getCachedBanks, getCachedPromos, getCachedTips, getCachedCategories,
 } from './api';
+import { CATEGORIES as FALLBACK_CATEGORIES } from './constants';
 
 interface DataState {
   banks: Bank[];
   promos: Promo[];
   tips: Tip[];
+  categories: Category[];
   loading: boolean;
 }
 
@@ -20,6 +18,7 @@ let globalData: DataState = {
   banks: [],
   promos: [],
   tips: [],
+  categories: FALLBACK_CATEGORIES,
   loading: true,
 };
 
@@ -36,17 +35,19 @@ async function init() {
 
   // Step 1: load from cache instantly
   try {
-    const [cachedBanks, cachedPromos, cachedTips] = await Promise.all([
+    const [cachedBanks, cachedPromos, cachedTips, cachedCategories] = await Promise.all([
       getCachedBanks(),
       getCachedPromos(),
       getCachedTips(),
+      getCachedCategories(),
     ]);
 
-    if (cachedBanks || cachedPromos || cachedTips) {
+    if (cachedBanks || cachedPromos || cachedTips || cachedCategories) {
       globalData = {
         banks: cachedBanks ?? [],
         promos: cachedPromos ?? [],
         tips: cachedTips ?? [],
+        categories: cachedCategories ?? FALLBACK_CATEGORIES,
         loading: false,
       };
       notify();
@@ -57,12 +58,13 @@ async function init() {
 
   // Step 2: refresh from Supabase in background
   try {
-    const [banks, promos, tips] = await Promise.all([
+    const [banks, promos, tips, categories] = await Promise.all([
       fetchBanks(),
       fetchPromos(),
       fetchTips(),
+      fetchCategories(),
     ]);
-    globalData = { banks, promos, tips, loading: false };
+    globalData = { banks, promos, tips, categories, loading: false };
     notify();
   } catch (err) {
     console.warn('Supabase fetch error:', err);
@@ -87,12 +89,13 @@ export function useData(): DataState {
 /** Force re-fetch from Supabase */
 export async function refreshData(): Promise<void> {
   try {
-    const [banks, promos, tips] = await Promise.all([
+    const [banks, promos, tips, categories] = await Promise.all([
       fetchBanks(),
       fetchPromos(),
       fetchTips(),
+      fetchCategories(),
     ]);
-    globalData = { banks, promos, tips, loading: false };
+    globalData = { banks, promos, tips, categories, loading: false };
     notify();
   } catch (err) {
     console.warn('Supabase refresh error:', err);

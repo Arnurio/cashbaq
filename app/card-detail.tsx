@@ -12,7 +12,7 @@ import { useRouter, useLocalSearchParams, useFocusEffect } from 'expo-router';
 import { ArrowUp, Trash2, Settings, ExternalLink, Clock, Flag } from 'lucide-react-native';
 import { getCards, saveCards } from '../lib/storage';
 import { useData } from '../lib/useData';
-import { CATEGORIES, BRAND_COLOR, BG_COLOR, MARKET_COLOR } from '../lib/constants';
+import { BRAND_COLOR, BG_COLOR, MARKET_COLOR } from '../lib/constants';
 import { getCardRate, getMarketBestRate } from '../lib/cashback';
 import { UserCard, Bank } from '../lib/types';
 import ReportInaccuracyModal from '../components/ReportInaccuracyModal';
@@ -30,7 +30,7 @@ function formatRelative(iso: string): string {
 export default function CardDetailScreen() {
   const { cardId } = useLocalSearchParams<{ cardId: string }>();
   const router = useRouter();
-  const { banks, loading } = useData();
+  const { banks, categories, loading } = useData();
   const [cards, setCards] = useState<UserCard[]>([]);
   const [reportTarget, setReportTarget] = useState<{
     categoryId: string;
@@ -68,7 +68,7 @@ export default function CardDetailScreen() {
     );
   }
 
-  const rates = CATEGORIES.map((cat) => {
+  const rates = categories.map((cat) => {
     const rate = getCardRate(card, bank, cat.id);
     const market = getMarketBestRate(banks, cat.id);
     const isBestInCategory = cards.every((otherCard) => {

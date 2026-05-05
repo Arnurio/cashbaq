@@ -1,11 +1,13 @@
 import AsyncStorage from '@react-native-async-storage/async-storage';
 import { supabase } from './supabase';
-import { Bank, Promo, Tip } from './types';
+import { Bank, Category, Promo, Tip } from './types';
+import { CATEGORIES as FALLBACK_CATEGORIES } from './constants';
 
 const CACHE_KEYS = {
   BANKS: 'cashbaq_cache_banks',
   PROMOS: 'cashbaq_cache_promos',
   TIPS: 'cashbaq_cache_tips',
+  CATEGORIES: 'cashbaq_cache_categories',
 } as const;
 
 // ── helpers ──────────────────────────────────────────
@@ -169,6 +171,52 @@ export async function fetchTips(): Promise<Tip[]> {
   return tips;
 }
 
+// ── fetchCategories ──────────────────────────────────
+
+// Static metadata that isn't stored in DB (design choices)
+const CATEGORY_META: Record<string, { icon: string; color: string; places: string[] }> = {
+  grocery:       { icon: 'ShoppingCart', color: '#16A34A', places: ['Magnum', 'Small', 'Arbuz', 'Galmart'] },
+  restaurants:   { icon: 'UtensilsCrossed', color: '#EA580C', places: ['Starbucks', 'Hardees', 'Burger King', 'Del Papa'] },
+  transport:     { icon: 'Car',           color: '#EAB308', places: ['Яндекс Go', 'InDrive', 'Bolt'] },
+  clothing:      { icon: 'Shirt',         color: '#A855F7', places: ['Zara', 'H&M', 'LC Waikiki', 'Bershka'] },
+  entertainment: { icon: 'Film',          color: '#EC4899', places: ['Kinopark', 'Chaplin', 'Kino.kz'] },
+  fuel:          { icon: 'Fuel',          color: '#64748B', places: ['KazMunayGas', 'Sinooil', 'Helios', 'Shell'] },
+  travel:        { icon: 'Plane',         color: '#0EA5E9', places: ['Aviata', 'Chocotravel', 'Booking'] },
+  pharmacy:      { icon: 'Pill',          color: '#EF4444', places: ['Europharma', 'Bio Pharm', 'Alma'] },
+  online:        { icon: 'Globe',         color: '#6366F1', places: ['Kaspi Shop', 'Wildberries', 'Ozon', 'Alibaba'] },
+  telecom:       { icon: 'Smartphone',    color: '#14B8A6', places: ['Kcell', 'Beeline', 'Tele2', 'Altel'] },
+};
+
+export async function fetchCategories(): Promise<Category[]> {
+  const [catsRes, placesRes] = await Promise.all([
+    supabase.from('categories').select('id, name, emoji').eq('is_active', true).order('sort_order'),
+    supabase.from('category_places').select('category_id, name').order('sort_order'),
+  ]);
+
+  if (catsRes.error || !catsRes.data) throw catsRes.error;
+
+  const placesByCategory = new Map<string, string[]>();
+  for (const p of (placesRes.data ?? [])) {
+    if (!placesByCategory.has(p.category_id)) placesByCategory.set(p.category_id, []);
+    placesByCategory.get(p.category_id)!.push(p.name);
+  }
+
+  const categories: Category[] = catsRes.data.map((c) => {
+    const meta = CATEGORY_META[c.id] ?? { icon: 'Tag', color: '#6B7280', places: [] };
+    return {
+      id: c.id,
+      name: c.name,
+      emoji: c.emoji,
+      icon: meta.icon,
+      color: meta.color,
+      places: placesByCategory.get(c.id) ?? meta.places,
+    };
+  });
+
+  await setCache(CACHE_KEYS.CATEGORIES, categories);
+  return categories;
+}
+
 // ── Cache-first loaders ──────────────────────────────
 
 export async function getCachedBanks(): Promise<Bank[] | null> {
@@ -181,4 +229,8 @@ export async function getCachedPromos(): Promise<Promo[] | null> {
 
 export async function getCachedTips(): Promise<Tip[] | null> {
   return getCache<Tip[]>(CACHE_KEYS.TIPS);
+}
+
+export async function getCachedCategories(): Promise<Category[] | null> {
+  return getCache<Category[]>(CACHE_KEYS.CATEGORIES);
 }

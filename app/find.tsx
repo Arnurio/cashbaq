@@ -10,7 +10,7 @@ import { useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
 import { getCards } from '../lib/storage';
 import { useData } from '../lib/useData';
-import { CATEGORIES, BRAND_COLOR, BG_COLOR } from '../lib/constants';
+import { BRAND_COLOR, BG_COLOR } from '../lib/constants';
 import { getBestCard, getCardRate } from '../lib/cashback';
 import { UserCard } from '../lib/types';
 import { useStaggerAnim, fadeStyle, PressableScale, CARD_SHADOW } from '../lib/animations';
@@ -19,8 +19,8 @@ import { trackEvent } from '../lib/analytics';
 export default function FindScreen() {
   const [cards, setCards] = useState<UserCard[]>([]);
   const [selectedCat, setSelectedCat] = useState<string | null>(null);
-  const { banks, promos, loading } = useData();
-  const anims = useStaggerAnim(CATEGORIES.length + 2);
+  const { banks, promos, categories, loading } = useData();
+  const anims = useStaggerAnim(categories.length + 2);
 
   useFocusEffect(
     useCallback(() => {
@@ -31,11 +31,11 @@ export default function FindScreen() {
   const bankMap = useMemo(() => new Map(banks.map((b) => [b.id, b])), [banks]);
 
   const catBestRates = useMemo(
-    () => new Map(CATEGORIES.map((cat) => [cat.id, getBestCard(cards, banks, cat.id)])),
-    [cards, banks]
+    () => new Map(categories.map((cat) => [cat.id, getBestCard(cards, banks, cat.id)])),
+    [categories, cards, banks]
   );
 
-  const selectedCategory = CATEGORIES.find((c) => c.id === selectedCat);
+  const selectedCategory = categories.find((c) => c.id === selectedCat);
   const bestCard = selectedCat ? (catBestRates.get(selectedCat) ?? null) : null;
   const promo = selectedCat ? promos.find((p) => p.category === selectedCat) : null;
 
@@ -66,7 +66,7 @@ export default function FindScreen() {
   return (
     <ScrollView style={styles.container} contentContainerStyle={styles.content}>
       {/* Category List */}
-      {CATEGORIES.map((cat, index) => {
+      {categories.map((cat, index) => {
         const userBest = catBestRates.get(cat.id) ?? null;
         const isSelected = selectedCat === cat.id;
         const catColor = cat.color;
