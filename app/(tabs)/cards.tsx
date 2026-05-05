@@ -8,7 +8,7 @@ import {
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Plus, Plane, Shield } from 'lucide-react-native';
+import { Plus, CreditCard } from 'lucide-react-native';
 import { getCards } from '../../lib/storage';
 import { useData } from '../../lib/useData';
 import { BRAND_COLOR, BG_COLOR } from '../../lib/constants';
@@ -65,6 +65,20 @@ export default function CardsScreen() {
       <Animated.View style={fadeStyle(anims[0])}>
         <Text style={styles.header}>Мои карты</Text>
       </Animated.View>
+
+      {cards.length === 0 && (
+        <Animated.View style={fadeStyle(anims[1])}>
+          <View style={styles.emptyCard}>
+            <View style={styles.emptyIconWrap}>
+              <CreditCard size={28} color={BRAND_COLOR} />
+            </View>
+            <Text style={styles.emptyTitle}>Карт пока нет</Text>
+            <Text style={styles.emptySub}>
+              Добавьте карты ваших банков — мы посчитаем максимальный кэшбэк по каждой покупке
+            </Text>
+          </View>
+        </Animated.View>
+      )}
 
       {cards.map((card, index) => {
         const bank = bankMap.get(card.bankId);
@@ -277,6 +291,39 @@ const styles = StyleSheet.create({
     fontSize: 13,
     color: '#6B7280',
     lineHeight: 18,
+  },
+  emptyCard: {
+    backgroundColor: '#FFFFFF',
+    borderRadius: 16,
+    paddingVertical: 28,
+    paddingHorizontal: 24,
+    alignItems: 'center',
+    marginBottom: 16,
+    borderWidth: 1.5,
+    borderColor: '#E5E7EB',
+    borderStyle: 'dashed',
+  },
+  emptyIconWrap: {
+    width: 56,
+    height: 56,
+    borderRadius: 28,
+    backgroundColor: '#E8F5F0',
+    alignItems: 'center',
+    justifyContent: 'center',
+    marginBottom: 14,
+  },
+  emptyTitle: {
+    fontFamily: 'Manrope_700Bold',
+    fontSize: 16,
+    color: '#111827',
+    marginBottom: 6,
+  },
+  emptySub: {
+    fontFamily: 'Manrope_500Medium',
+    fontSize: 13,
+    color: '#6B7280',
+    textAlign: 'center',
+    lineHeight: 19,
   },
   addBtn: {
     flexDirection: 'row',
