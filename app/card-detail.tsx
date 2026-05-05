@@ -88,6 +88,7 @@ export default function CardDetailScreen() {
       canImprove: market ? market.rate > rate : false,
       sourceUrl: meta?.sourceUrl,
       updatedAt: meta?.updatedAt,
+      verifiedBy: meta?.verifiedBy ?? 'ai_estimate',
     };
   }).sort((a, b) => b.rate - a.rate);
 
@@ -169,7 +170,7 @@ export default function CardDetailScreen() {
         )}
       </View>
 
-      {rates.map(({ category, rate, marketRate, marketBank, isBest, canImprove, sourceUrl }) => (
+      {rates.map(({ category, rate, marketRate, marketBank, isBest, canImprove, sourceUrl, verifiedBy }) => (
         <View key={category.id} style={styles.tableRow}>
           <Text style={styles.rowEmoji}>{category.emoji}</Text>
           <View style={styles.rowInfo}>
@@ -180,13 +181,19 @@ export default function CardDetailScreen() {
                   <Text style={styles.bestBadgeText}>ЛУЧШАЯ</Text>
                 </View>
               )}
-              {sourceUrl && (
+              {(verifiedBy === 'user' || verifiedBy === 'bank_site') ? (
                 <TouchableOpacity
-                  onPress={() => Linking.openURL(sourceUrl).catch(() => {})}
+                  onPress={sourceUrl ? () => Linking.openURL(sourceUrl).catch(() => {}) : undefined}
                   hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                  style={styles.verifiedBadge}
                 >
-                  <ExternalLink size={12} color="#9CA3AF" />
+                  <Text style={styles.verifiedBadgeText}>✓</Text>
+                  {sourceUrl && <ExternalLink size={10} color="#16A34A" />}
                 </TouchableOpacity>
+              ) : (
+                <View style={styles.aiBadge}>
+                  <Text style={styles.aiBadgeText}>AI</Text>
+                </View>
               )}
             </View>
             {canImprove && (
@@ -503,5 +510,30 @@ const styles = StyleSheet.create({
     fontFamily: 'Manrope_600SemiBold',
     fontSize: 15,
     color: '#EF4444',
+  },
+  verifiedBadge: {
+    flexDirection: 'row',
+    alignItems: 'center',
+    gap: 2,
+    backgroundColor: '#DCFCE7',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  verifiedBadgeText: {
+    fontFamily: 'Manrope_700Bold',
+    fontSize: 10,
+    color: '#16A34A',
+  },
+  aiBadge: {
+    backgroundColor: '#FEF3C7',
+    borderRadius: 4,
+    paddingHorizontal: 5,
+    paddingVertical: 1,
+  },
+  aiBadgeText: {
+    fontFamily: 'Manrope_700Bold',
+    fontSize: 9,
+    color: '#B45309',
   },
 });

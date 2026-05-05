@@ -12,11 +12,17 @@ export interface BankConfig {
   tiers?: Record<BerekeTier, number>;
 }
 
+export type VerifiedBy = 'user' | 'community' | 'bank_site' | 'ai_estimate';
+
 export interface RateMeta {
   /** ISO timestamp когда ставка была верифицирована */
   updatedAt: string;
   /** Ссылка на источник (страница банка) */
   sourceUrl?: string;
+  /** Кто верифицировал ставку */
+  verifiedBy: VerifiedBy;
+  /** Дата верификации */
+  verifiedAt?: string;
 }
 
 export interface Bank {

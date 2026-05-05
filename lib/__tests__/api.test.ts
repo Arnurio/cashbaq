@@ -81,6 +81,8 @@ describe('fetchBanks rateMeta', () => {
       grocery: {
         updatedAt: '2026-04-25T10:00:00.000Z',
         sourceUrl: 'https://kaspi.kz/source',
+        verifiedBy: 'ai_estimate',
+        verifiedAt: undefined,
       },
     });
   });
