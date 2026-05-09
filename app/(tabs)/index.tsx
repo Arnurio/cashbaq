@@ -1,21 +1,31 @@
 import { useCallback, useState } from 'react';
 import {
   View,
-  Text,
   StyleSheet,
-  ScrollView,
   FlatList,
   Animated,
 } from 'react-native';
 import { useRouter, useFocusEffect } from 'expo-router';
 import { LinearGradient } from 'expo-linear-gradient';
-import { Search, CreditCard, Bell, Clock } from 'lucide-react-native';
+import { CreditCard, Bell, Clock, Plus } from 'lucide-react-native';
+
 import { getCards } from '../../lib/storage';
 import { useData } from '../../lib/useData';
-import { CATEGORIES, BRAND_COLOR, BG_COLOR } from '../../lib/constants';
+import { CATEGORIES } from '../../lib/constants';
 import { getCardRate, getBestCard } from '../../lib/cashback';
 import { UserCard } from '../../lib/types';
-import { useStaggerAnim, fadeStyle, PressableScale, CARD_SHADOW } from '../../lib/animations';
+import { useStaggerAnim, fadeStyle, PressableScale } from '../../lib/animations';
+import { colors, spacing, radii, shadows, typography } from '../../lib/theme';
+
+import {
+  Screen,
+  Text,
+  Card,
+  Section,
+  Hero,
+  StatTiles,
+  EmptyState,
+} from '../../components/ui';
 
 export default function HomeScreen() {
   const [cards, setCards] = useState<UserCard[]>([]);
@@ -46,7 +56,7 @@ export default function HomeScreen() {
     return sum + (bank?.limits.monthly ?? 0);
   }, 0);
 
-  // Top 2 category rates for hero badges
+  // Top 3 category rates for hero badges
   const topCatRates = CATEGORIES.map((cat) => {
     const best = getBestCard(cards, banks, cat.id);
     return { emoji: cat.emoji, rate: best?.rate ?? 0 };
@@ -62,95 +72,78 @@ export default function HomeScreen() {
 
   if (loading && banks.length === 0) {
     return (
-      <View style={styles.loadingWrap}>
-        <Text style={styles.loadingText}>Загрузка...</Text>
-      </View>
+      <Screen>
+        <Text variant="body" color={colors.textSecondary} align="center">
+          Загрузка...
+        </Text>
+      </Screen>
     );
   }
 
   return (
-    <ScrollView style={styles.container} contentContainerStyle={styles.content}>
-      {/* Hero */}
+    <Screen>
+      {/* Hero — главный CTA */}
       <Animated.View style={fadeStyle(anims[0])}>
-        <PressableScale onPress={() => router.push('/find')}>
-          <LinearGradient
-            colors={['#0D7C5F', '#059669']}
-            start={{ x: 0, y: 0 }}
-            end={{ x: 1, y: 1 }}
-            style={styles.heroBtn}
-          >
-            <View style={styles.heroRow}>
-              <View style={styles.heroLeft}>
-                <Text style={styles.heroTitle}>Чем платить?</Text>
-                <Text style={styles.heroSub}>
-                  Найдите лучшую карту для любой покупки
-                </Text>
-              </View>
-              <View style={styles.heroIconWrap}>
-                <Search size={22} color="#FFFFFF" />
-              </View>
-            </View>
-            {topCatRates.length > 0 && (
-              <View style={styles.heroBadges}>
-                {topCatRates.map((c, i) => (
-                  <View key={i} style={styles.heroBadge}>
-                    <Text style={styles.heroBadgeText}>
-                      {c.emoji} {c.rate}%
-                    </Text>
-                  </View>
-                ))}
-              </View>
-            )}
-          </LinearGradient>
-        </PressableScale>
+        <Hero
+          title="Чем платить?"
+          subtitle="Подскажу карту с лучшим кэшбэком за 2 тапа"
+          onPress={() => router.push('/find')}
+          badges={topCatRates.map((c) => ({
+            emoji: c.emoji,
+            label: `${c.rate}%`,
+          }))}
+        />
       </Animated.View>
 
-      {/* Section Header */}
-      <Animated.View style={[styles.sectionHeader, fadeStyle(anims[1])]}>
-        <View style={styles.sectionLine} />
-        <Text style={styles.sectionTitle}>🏦 Ваши карты</Text>
-      </Animated.View>
-
+      {/* Карты — empty state или контент */}
       {cards.length === 0 ? (
-        <Animated.View style={fadeStyle(anims[2])}>
-          <PressableScale
-            style={styles.emptyCard}
+        <Animated.View style={fadeStyle(anims[1])}>
+          <EmptyState
+            icon={CreditCard}
+            title="Добавь первую карту"
+            subtitle="Cashbaq покажет лучшую карту для каждой покупки"
+            ctaLabel="+ Добавить карту"
             onPress={() => router.push('/add-card')}
-          >
-            <CreditCard size={32} color="#9CA3AF" />
-            <Text style={styles.emptyText}>Добавьте первую карту</Text>
-          </PressableScale>
+          />
         </Animated.View>
       ) : (
-        <>
-          {/* Metrics */}
-          <Animated.View style={[styles.metrics, fadeStyle(anims[2])]}>
-            <View style={[styles.metricCard, CARD_SHADOW]}>
-              <Text style={styles.metricValue}>{cards.length}</Text>
-              <Text style={styles.metricLabel}>Карт</Text>
-            </View>
-            <View style={[styles.metricCard, CARD_SHADOW]}>
-              <Text style={styles.metricValue}>{maxRate}%</Text>
-              <Text style={styles.metricLabel}>Макс ставка</Text>
-            </View>
-            <View style={[styles.metricCard, CARD_SHADOW]}>
-              <Text style={styles.metricValue}>
-                {totalLimit >= 1000
-                  ? `${Math.round(totalLimit / 1000)}K`
-                  : totalLimit}
-              </Text>
-              <Text style={styles.metricLabel}>Лимит/мес</Text>
-            </View>
-          </Animated.View>
+        <Animated.View style={[fadeStyle(anims[1]), styles.cardsBlock]}>
+          {/* Метрики */}
+          <StatTiles
+            stats={[
+              { value: cards.length, label: 'Карт' },
+              { value: `${maxRate}%`, label: 'Макс ставка' },
+              {
+                value:
+                  totalLimit >= 1000
+                    ? `${Math.round(totalLimit / 1000)}K`
+                    : totalLimit,
+                label: 'Лимит/мес',
+              },
+            ]}
+          />
 
-          {/* Bank Cards Scroll */}
-          <Animated.View style={fadeStyle(anims[3])}>
+          {/* Section: Карты */}
+          <Section
+            title="Твои карты"
+            action={
+              <PressableScale
+                onPress={() => router.push('/add-card')}
+                style={styles.actionPill}
+              >
+                <Plus size={14} color={colors.brand} strokeWidth={2.5} />
+                <Text variant="buttonSm" color={colors.brand}>
+                  Карту
+                </Text>
+              </PressableScale>
+            }
+          >
             <FlatList
               horizontal
               showsHorizontalScrollIndicator={false}
               data={cards}
               keyExtractor={(item) => item.id}
-              contentContainerStyle={styles.cardList}
+              contentContainerStyle={styles.hList}
               renderItem={({ item }) => {
                 const bank = bankMap.get(item.bankId);
                 if (!bank) return null;
@@ -171,19 +164,33 @@ export default function HomeScreen() {
                       colors={bank.gradient as [string, string]}
                       start={{ x: 0, y: 0 }}
                       end={{ x: 1, y: 1 }}
-                      style={styles.cardItem}
+                      style={styles.bankCard}
                     >
                       <View>
-                        <Text style={styles.cardBank}>{bank.name}</Text>
-                        <Text style={styles.cardName}>{item.name}</Text>
+                        <Text
+                          variant="bodySm"
+                          color="rgba(255,255,255,0.7)"
+                        >
+                          {bank.name}
+                        </Text>
+                        <Text variant="h3" color={colors.textInverse}>
+                          {item.name}
+                        </Text>
                       </View>
-                      <View style={styles.cardBottom}>
-                        <Text style={styles.cardMaxRate}>
+                      <View style={styles.bankCardBottom}>
+                        <Text
+                          variant="h2"
+                          color={colors.textInverse}
+                          style={styles.bankRate}
+                        >
                           до {bestRate}%
                         </Text>
                         {item.level && (
                           <View style={styles.levelBadge}>
-                            <Text style={styles.levelText}>
+                            <Text
+                              variant="buttonSm"
+                              color={colors.textInverse}
+                            >
                               {item.level.charAt(0).toUpperCase() +
                                 item.level.slice(1)}
                             </Text>
@@ -195,48 +202,64 @@ export default function HomeScreen() {
                 );
               }}
             />
+          </Section>
+        </Animated.View>
+      )}
 
-            <PressableScale
-              style={styles.addMoreBtn}
-              onPress={() => router.push('/add-card')}
-            >
-              <Text style={styles.addMoreText}>+ Добавить карту</Text>
-            </PressableScale>
-          </Animated.View>
-
-          {/* Promos */}
-          {promos.length > 0 && (
-            <Animated.View style={fadeStyle(anims[4])}>
-              <Text style={styles.promoSectionTitle}>Промо-акции</Text>
-              <FlatList
-                horizontal
-                showsHorizontalScrollIndicator={false}
-                data={promos}
-                keyExtractor={(item) => item.title}
-                contentContainerStyle={styles.promoList}
-                renderItem={({ item }) => {
-                  const bank = bankMap.get(item.bankId);
-                  const bankColor = bank?.color ?? BRAND_COLOR;
-                  return (
-                    <View
-                      style={[
-                        styles.promoCard,
-                        CARD_SHADOW,
-                        { borderLeftWidth: 3, borderLeftColor: bankColor },
-                      ]}
+      {/* Promos */}
+      {promos.length > 0 && cards.length > 0 && (
+        <Animated.View style={fadeStyle(anims[3])}>
+          <Section title="Промо-акции" subtitle="Лови повышенный кэшбэк">
+            <FlatList
+              horizontal
+              showsHorizontalScrollIndicator={false}
+              data={promos}
+              keyExtractor={(item) => item.title}
+              contentContainerStyle={styles.hList}
+              renderItem={({ item }) => {
+                const bank = bankMap.get(item.bankId);
+                const bankColor = bank?.color ?? colors.brand;
+                return (
+                  <View style={styles.promoCardWrap}>
+                    <Card
+                      variant="elevated"
+                      accentColor={bankColor}
+                      padding="lg"
+                      style={styles.promoCard}
                     >
                       {item.isNew && (
                         <View style={styles.newBadge}>
-                          <Text style={styles.newBadgeText}>NEW</Text>
+                          <Text
+                            variant="buttonSm"
+                            color={colors.textInverse}
+                            style={styles.newBadgeText}
+                          >
+                            NEW
+                          </Text>
                         </View>
                       )}
                       <Text style={styles.promoEmoji}>{item.emoji}</Text>
-                      <Text style={styles.promoTitle}>{item.title}</Text>
-                      <Text style={styles.promoRate}>{item.rate}%</Text>
-                      <Text style={styles.promoDesc}>{item.desc}</Text>
+                      <Text variant="h3" color={colors.textPrimary}>
+                        {item.title}
+                      </Text>
+                      <Text
+                        variant="displayLg"
+                        color={colors.brand}
+                        style={styles.promoRate}
+                      >
+                        {item.rate}%
+                      </Text>
+                      <Text
+                        variant="bodySm"
+                        color={colors.textSecondary}
+                        style={styles.promoDesc}
+                        numberOfLines={2}
+                      >
+                        {item.desc}
+                      </Text>
                       <View style={styles.promoDateRow}>
-                        <Clock size={11} color="#9CA3AF" />
-                        <Text style={styles.promoDate}>
+                        <Clock size={12} color={colors.textMuted} />
+                        <Text variant="caption">
                           до{' '}
                           {new Date(item.endDate).toLocaleDateString('ru-RU', {
                             day: 'numeric',
@@ -244,289 +267,124 @@ export default function HomeScreen() {
                           })}
                         </Text>
                       </View>
-                    </View>
-                  );
-                }}
-              />
-            </Animated.View>
-          )}
-        </>
+                    </Card>
+                  </View>
+                );
+              }}
+            />
+          </Section>
+        </Animated.View>
       )}
 
-      {/* Category Reminder */}
+      {/* Reminder для selectable банков */}
       {selectableBanks.length > 0 && (
-        <View style={styles.reminderBlock}>
-          <Bell size={18} color="#F59E0B" />
-          <Text style={styles.reminderText}>
-            Не забудьте выбрать категории для{' '}
-            {selectableBanks.map((c) => c.name).join(', ')}
-          </Text>
-        </View>
+        <Animated.View style={fadeStyle(anims[4])}>
+          <View style={styles.reminder}>
+            <Bell size={20} color={colors.warning} strokeWidth={2.2} />
+            <Text
+              variant="body"
+              color={colors.warningText}
+              style={styles.reminderText}
+            >
+              Не забудь выбрать категории для{' '}
+              {selectableBanks.map((c) => c.name).join(', ')}
+            </Text>
+          </View>
+        </Animated.View>
       )}
-    </ScrollView>
+    </Screen>
   );
 }
 
 const styles = StyleSheet.create({
-  loadingWrap: {
-    flex: 1,
-    alignItems: 'center',
-    justifyContent: 'center',
-    backgroundColor: BG_COLOR,
+  cardsBlock: {
+    gap: spacing.xl,
   },
-  loadingText: {
-    fontFamily: 'Manrope_500Medium',
-    fontSize: 16,
-    color: '#6B7280',
-  },
-  container: {
-    flex: 1,
-    backgroundColor: BG_COLOR,
-  },
-  content: {
-    padding: 16,
-    paddingTop: 60,
-    paddingBottom: 32,
-  },
-  // Hero
-  heroBtn: {
-    borderRadius: 18,
-    padding: 20,
-    marginBottom: 24,
-  },
-  heroRow: {
+  actionPill: {
     flexDirection: 'row',
-    alignItems: 'flex-start',
-    justifyContent: 'space-between',
-  },
-  heroLeft: {
-    flex: 1,
-    marginRight: 12,
-  },
-  heroTitle: {
-    fontFamily: 'Manrope_800ExtraBold',
-    fontSize: 22,
-    color: '#FFFFFF',
-    marginBottom: 6,
-  },
-  heroSub: {
-    fontFamily: 'Manrope_500Medium',
-    fontSize: 14,
-    color: 'rgba(255,255,255,0.8)',
-    marginBottom: 14,
-  },
-  heroIconWrap: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 12,
-    width: 44,
-    height: 44,
     alignItems: 'center',
-    justifyContent: 'center',
+    gap: 4,
+    paddingHorizontal: spacing.md,
+    paddingVertical: 6,
+    backgroundColor: colors.brandSoft,
+    borderRadius: radii.pill,
   },
-  heroBadges: {
-    flexDirection: 'row',
-    gap: 6,
-    marginTop: 4,
-  },
-  heroBadge: {
-    backgroundColor: 'rgba(255,255,255,0.2)',
-    borderRadius: 20,
-    paddingHorizontal: 10,
-    paddingVertical: 5,
-  },
-  heroBadgeText: {
-    fontSize: 13,
-    color: '#FFFFFF',
-    fontFamily: 'Manrope_600SemiBold',
-  },
-  // Section
-  sectionHeader: {
-    marginBottom: 14,
-  },
-  sectionLine: {
-    height: 1,
-    backgroundColor: '#E5E7EB',
-    marginBottom: 14,
-  },
-  sectionTitle: {
-    fontFamily: 'Manrope_800ExtraBold',
-    fontSize: 18,
-    color: '#111827',
-  },
-  // Empty
-  emptyCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 32,
-    alignItems: 'center',
-    gap: 12,
-    borderWidth: 1.5,
-    borderColor: '#E5E7EB',
-    borderStyle: 'dashed',
-  },
-  emptyText: {
-    fontFamily: 'Manrope_500Medium',
-    fontSize: 15,
-    color: '#9CA3AF',
-  },
-  // Metrics
-  metrics: {
-    flexDirection: 'row',
-    gap: 10,
-    marginBottom: 16,
-  },
-  metricCard: {
-    flex: 1,
-    backgroundColor: '#FFFFFF',
-    borderRadius: 14,
-    paddingVertical: 14,
-    alignItems: 'center',
-  },
-  metricValue: {
-    fontFamily: 'Manrope_800ExtraBold',
-    fontSize: 22,
-    color: BRAND_COLOR,
-  },
-  metricLabel: {
-    fontFamily: 'Manrope_500Medium',
-    fontSize: 11,
-    color: '#6B7280',
-    marginTop: 3,
-  },
-  // Cards
-  cardList: {
-    gap: 12,
+  hList: {
+    gap: spacing.md,
     paddingVertical: 4,
+    paddingRight: spacing.lg,
   },
-  cardItem: {
-    width: 165,
-    borderRadius: 16,
-    padding: 16,
-    height: 110,
+  bankCard: {
+    width: 175,
+    borderRadius: radii.lg,
+    padding: spacing.lg,
+    height: 120,
     justifyContent: 'space-between',
+    ...(shadows.md as object),
   },
-  cardBank: {
-    fontFamily: 'Manrope_500Medium',
-    fontSize: 12,
-    color: 'rgba(255,255,255,0.7)',
-  },
-  cardName: {
-    fontFamily: 'Manrope_700Bold',
-    fontSize: 15,
-    color: '#FFFFFF',
-    marginTop: 2,
-  },
-  cardBottom: {
+  bankCardBottom: {
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'space-between',
   },
-  cardMaxRate: {
-    fontFamily: 'Manrope_800ExtraBold',
-    fontSize: 18,
-    color: '#FFFFFF',
+  bankRate: {
+    letterSpacing: -0.4,
   },
   levelBadge: {
-    backgroundColor: 'rgba(255,255,255,0.25)',
-    borderRadius: 8,
+    backgroundColor: 'rgba(255,255,255,0.22)',
+    borderRadius: radii.sm,
     paddingHorizontal: 8,
     paddingVertical: 3,
   },
-  levelText: {
-    fontFamily: 'Manrope_600SemiBold',
-    fontSize: 11,
-    color: '#FFFFFF',
-  },
-  addMoreBtn: {
-    marginTop: 14,
-    alignItems: 'center',
-  },
-  addMoreText: {
-    fontFamily: 'Manrope_600SemiBold',
-    fontSize: 15,
-    color: BRAND_COLOR,
-  },
-  // Promos
-  promoSectionTitle: {
-    fontFamily: 'Manrope_700Bold',
-    fontSize: 16,
-    color: '#111827',
-    marginTop: 20,
-    marginBottom: 10,
-  },
-  promoList: {
-    gap: 12,
-    paddingVertical: 4,
+  promoCardWrap: {
+    width: 200,
   },
   promoCard: {
-    backgroundColor: '#FFFFFF',
-    borderRadius: 16,
-    padding: 16,
-    width: 185,
+    minHeight: 180,
   },
   newBadge: {
     position: 'absolute',
-    top: 10,
-    right: 10,
-    backgroundColor: '#EF4444',
-    borderRadius: 8,
-    paddingHorizontal: 7,
+    top: spacing.md,
+    right: spacing.md,
+    backgroundColor: colors.danger,
+    borderRadius: radii.sm,
+    paddingHorizontal: 8,
     paddingVertical: 2,
+    zIndex: 1,
   },
   newBadgeText: {
-    fontFamily: 'Manrope_800ExtraBold',
     fontSize: 10,
-    color: '#FFFFFF',
     letterSpacing: 0.5,
   },
   promoEmoji: {
     fontSize: 28,
-    marginBottom: 8,
-  },
-  promoTitle: {
-    fontFamily: 'Manrope_700Bold',
-    fontSize: 14,
-    color: '#111827',
-    marginBottom: 2,
+    marginBottom: spacing.sm,
   },
   promoRate: {
-    fontFamily: 'Manrope_800ExtraBold',
-    fontSize: 24,
-    color: BRAND_COLOR,
-    marginBottom: 4,
+    marginVertical: 2,
+    fontSize: 28,
+    lineHeight: 32,
   },
   promoDesc: {
-    fontFamily: 'Manrope_500Medium',
-    fontSize: 12,
-    color: '#6B7280',
-    marginBottom: 8,
+    marginBottom: spacing.sm,
   },
   promoDateRow: {
     flexDirection: 'row',
     alignItems: 'center',
     gap: 4,
+    marginTop: 'auto',
   },
-  promoDate: {
-    fontFamily: 'Manrope_500Medium',
-    fontSize: 11,
-    color: '#9CA3AF',
-  },
-  // Reminder
-  reminderBlock: {
+  reminder: {
     flexDirection: 'row',
     alignItems: 'center',
-    gap: 10,
-    backgroundColor: '#FFFBEB',
-    borderRadius: 12,
-    padding: 14,
-    marginTop: 16,
+    gap: spacing.md,
+    backgroundColor: colors.warningBg,
+    borderRadius: radii.lg,
+    padding: spacing.lg,
     borderWidth: 1,
-    borderColor: '#FDE68A',
+    borderColor: colors.warningBorder,
   },
   reminderText: {
-    fontFamily: 'Manrope_500Medium',
-    fontSize: 13,
-    color: '#92400E',
     flex: 1,
   },
 });

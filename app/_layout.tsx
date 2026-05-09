@@ -10,6 +10,7 @@ import {
   Manrope_700Bold,
   Manrope_800ExtraBold,
 } from '@expo-google-fonts/manrope';
+import { SafeAreaProvider } from 'react-native-safe-area-context';
 import { ToastProvider } from '../lib/Toast';
 import { getOnboarded } from '../lib/storage';
 import { onAuthStateChange } from '../lib/auth';
@@ -114,8 +115,9 @@ export default function RootLayout() {
   }
 
   return (
-    <ErrorBoundary>
-      <ToastProvider>
+    <SafeAreaProvider>
+      <ErrorBoundary>
+        <ToastProvider>
       <Stack
         screenOptions={{
           headerShown: false,
@@ -156,7 +158,8 @@ export default function RootLayout() {
           }}
         />
       </Stack>
-      </ToastProvider>
-    </ErrorBoundary>
+        </ToastProvider>
+      </ErrorBoundary>
+    </SafeAreaProvider>
   );
 }
