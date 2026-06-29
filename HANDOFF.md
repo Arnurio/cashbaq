@@ -88,7 +88,7 @@
 ```
 Mobile:    Expo SDK 54 + React Native 0.81 + TypeScript + expo-router v6
 Admin:     Vite 8 + React 19 + TailwindCSS v4 (отдельный package.json в admin/)
-Backend:   Supabase (URL: https://cdtnvqlxsbwcdiapbdkh.supabase.co)
+Backend:   Supabase (URL: [REDACTED])
 Tests:     Jest + jest-expo (npx jest) — 59/59
 Repo:      https://github.com/Arnurio/cashbaq (branch: main)
 ```

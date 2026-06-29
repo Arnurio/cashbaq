@@ -37,11 +37,11 @@
 ## SUPABASE
 
 ```
-URL:  https://cdtnvqlxsbwcdiapbdkh.supabase.co
-Key:  sb_publishable_t_ZX1tPKl9q93fdiVU-LeA_rrnK4Sv5  (anon)
+URL:  [REDACTED]
+Key:  [REDACTED]
 ```
 
-Клиент захардкожен в: `lib/supabase.ts`, `admin/src/lib/supabase.ts`, `admin/seed.js`
+Клиент настроен через переменные окружения (.env) и используется в: `lib/supabase.ts`, `admin/src/lib/supabase.ts`, `admin/seed.js`
 
 ### Таблицы (6 шт.)
 - `banks` — банки с цветами, градиентами, типом кэшбэка, конфигом
@@ -131,7 +131,7 @@ npx expo start --web
 cd admin && npm install && npm run dev
 
 # Seed DB
-node admin/seed.js
+node --env-file=admin/.env admin/seed.js
 
 # EAS Build (APK preview)
 eas build --platform android --profile preview
